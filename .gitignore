@@ -32,11 +32,11 @@ ENV/
 .env.test.local
 .env.production.local
 
-# Database
-*.db
-*.sqlite3
-*.dump
-*.sql
+# Database (исключения для FEMCL)
+# *.db
+# *.sqlite3
+# *.dump
+# *.sql
 
 # Logs
 *.log
@@ -55,3 +55,8 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# FEMCL specific - разрешаем резервные копии
+!database/backups/*.dump
+!database/backups/*.sql
+!database/backups/*.txt
