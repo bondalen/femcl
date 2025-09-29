@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "desktop-commander": {
+      "command": "npx",
+      "args": [
+        "@wonderwhy-er/desktop-commander@latest"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "description": "Desktop Commander MCP - управление системой, файлами и процессами",
+      "capabilities": [
+        "file_operations",
+        "process_management", 
+        "terminal_commands",
+        "system_info"
+      ]
+    },
+    "dbhub": {
+      "command": "node",
+      "args": [
+        "/home/alex/projects/java/spring/vue/fevue/dbhub/dist/index.js",
+        "--dsn=postgres://postgres:postgres@localhost:5432/fish_eye"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "description": "DBHub MCP - универсальный сервер для работы с базами данных (PostgreSQL Fish_Eye)",
+      "capabilities": [
+        "database_connections",
+        "sql_queries",
+        "schema_management",
+        "data_operations"
+      ]
+    }
+  }
+}
+
