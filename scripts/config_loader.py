@@ -98,6 +98,13 @@ class ConfigLoader:
         
         return self.config.get('development', {})
     
+    def get_github_config(self) -> Dict[str, Any]:
+        """Получение конфигурации GitHub"""
+        if not self.config:
+            raise ValueError("Конфигурация не загружена")
+        
+        return self.config.get('github', {})
+    
     def get_connection_string(self, db_type: str) -> str:
         """Получение строки подключения к базе данных"""
         db_config = self.get_database_config(db_type)
