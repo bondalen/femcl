@@ -180,3 +180,24 @@ development:
   # Документация
   generate_documentation: true
   update_schema_docs: true
+
+# 🔗 Настройки GitHub
+github:
+  # Репозиторий
+  repository: "bondalen/femcl"
+  branch: "main"
+  remote_url: "https://github.com/bondalen/femcl.git"
+  
+  # Аутентификация
+  token_env_var: "GITHUB_TOKEN"
+  use_token: true
+  
+  # Настройки синхронизации
+  auto_sync: false
+  sync_on_changes: true
+  commit_message_template: "🚀 {action}: {description}"
+  
+  # Настройки коммитов
+  include_timestamp: true
+  detailed_commit_messages: true
+  auto_add_all: true

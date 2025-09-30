@@ -22,22 +22,17 @@ class GitHubSync:
         self.token = self._load_token()
         
     def _load_token(self):
-        """Загрузка токена GitHub"""
-        token_file = self.github_config.get('token_file', 'config/github_token.txt')
-        token_path = Path(f"../{token_file}")
+        """Загрузка токена GitHub из переменной окружения"""
+        token_env_var = self.github_config.get('token_env_var', 'GITHUB_TOKEN')
+        token = os.getenv(token_env_var)
         
-        if not token_path.exists():
-            console.print(f"[red]❌ Файл токена не найден: {token_file}[/red]")
+        if not token:
+            console.print(f"[red]❌ Переменная окружения {token_env_var} не установлена[/red]")
+            console.print(f"[yellow]💡 Установите токен: export {token_env_var}='your_token_here'[/yellow]")
             return None
             
-        try:
-            with open(token_path, 'r') as f:
-                token = f.read().strip()
-            console.print("[green]✅ Токен GitHub загружен[/green]")
-            return token
-        except Exception as e:
-            console.print(f"[red]❌ Ошибка загрузки токена: {e}[/red]")
-            return None
+        console.print("[green]✅ Токен GitHub загружен из переменной окружения[/green]")
+        return token
     
     def _setup_remote(self):
         """Настройка удаленного репозитория"""
