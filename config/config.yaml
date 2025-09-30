@@ -1,0 +1,182 @@
+# 🔧 КОНФИГУРАЦИЯ СИСТЕМЫ МИГРАЦИИ FEMCL
+
+# 📊 Настройки баз данных
+database:
+  # MS SQL Server
+  mssql:
+    server: localhost
+    port: 1433
+    database: FishEye
+    user: sa
+    password: kolob_OK1
+    driver: "ODBC Driver 17 for SQL Server"
+    trust_certificate: true
+    connection_timeout: 30
+    command_timeout: 300
+  
+  # PostgreSQL
+  postgres:
+    host: localhost
+    port: 5432
+    database: fish_eye
+    user: postgres
+    password: postgres
+    connection_timeout: 30
+    command_timeout: 300
+    ssl_mode: prefer
+
+# 🎯 Настройки миграции
+migration:
+  # Основные параметры
+  target_schema: ags
+  batch_size: 1000
+  max_retries: 3
+  timeout: 300
+  
+  # Производительность
+  large_table_threshold: 1000000  # 1M строк
+  batch_processing_size: 5000
+  memory_limit_mb: 1024
+  
+  # Безопасность
+  validate_parameters: true
+  check_data_integrity: true
+  backup_before_migration: false
+  
+  # Логирование
+  log_level: INFO
+  log_file: "migration_{date}.log"
+  log_format: "%(asctime)s - %(levelname)s - %(message)s"
+  
+  # Отчеты
+  generate_reports: true
+  report_format: markdown
+  report_directory: "docs/reports"
+
+# 🔍 Настройки проверки готовности
+readiness_check:
+  # Критерии готовности
+  min_readiness_percentage: 95
+  check_parent_objects: true
+  check_child_tables: true
+  check_columns: true
+  check_indexes: true
+  check_constraints: true
+  check_triggers: true
+  check_identity_columns: true
+  
+  # Валидация метаданных
+  validate_metadata_completeness: true
+  min_metadata_quality: 95
+  check_type_mapping_quality: true
+  
+  # Проверка проблем
+  check_problems: true
+  max_critical_problems: 0
+  max_warning_problems: 5
+
+# 🏗️ Настройки создания таблиц
+table_creation:
+  # DDL настройки
+  validate_ddl_syntax: true
+  check_name_conflicts: true
+  handle_cascade_dependencies: true
+  
+  # Типы данных
+  use_postgres_types: true
+  handle_identity_columns: true
+  preserve_null_constraints: true
+  preserve_default_values: true
+  
+  # Индексы и ограничения
+  create_primary_keys: true
+  create_foreign_keys: true
+  create_unique_constraints: true
+  create_check_constraints: true
+  create_indexes: true
+  
+  # Проверки после создания
+  verify_table_structure: true
+  check_column_types: true
+  validate_constraints: true
+
+# 📦 Настройки переноса данных
+data_migration:
+  # Стратегия переноса
+  transfer_strategy: "batch"  # batch, streaming, parallel
+  
+  # Обработка identity колонок
+  handle_identity_columns: true
+  use_overriding_system_value: true
+  preserve_identity_values: true
+  
+  # Обработка типов данных
+  handle_null_values: true
+  convert_data_types: true
+  escape_special_characters: true
+  
+  # Производительность
+  use_batch_inserts: true
+  batch_size: 1000
+  parallel_workers: 4
+  
+  # Проверки целостности
+  verify_row_count: true
+  check_data_integrity: true
+  validate_identity_sequences: true
+  
+  # Обработка ошибок
+  skip_invalid_rows: false
+  log_errors: true
+  retry_failed_batches: true
+
+# 📊 Настройки мониторинга
+monitoring:
+  # Метрики производительности
+  track_execution_time: true
+  monitor_memory_usage: true
+  track_disk_usage: true
+  
+  # Уведомления
+  send_notifications: false
+  notification_email: ""
+  notification_webhook: ""
+  
+  # Логирование
+  log_performance_metrics: true
+  log_sql_queries: false
+  log_data_transfer: true
+
+# 🚨 Настройки безопасности
+security:
+  # Шифрование
+  encrypt_passwords: true
+  use_ssl_connections: true
+  
+  # Права доступа
+  check_user_permissions: true
+  validate_schema_access: true
+  
+  # Аудит
+  log_security_events: true
+  track_user_actions: true
+  
+  # Резервное копирование
+  backup_critical_data: true
+  backup_retention_days: 30
+
+# 🔧 Настройки разработки
+development:
+  # Отладка
+  debug_mode: false
+  verbose_logging: false
+  dry_run: false
+  
+  # Тестирование
+  run_tests: true
+  test_data_size: 1000
+  validate_test_results: true
+  
+  # Документация
+  generate_documentation: true
+  update_schema_docs: true
