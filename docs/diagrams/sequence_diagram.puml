@@ -1,0 +1,58 @@
+@startuml
+!theme plain
+
+actor User
+participant "Main Script" as Main
+participant "TableModel" as Model
+participant "TableMigrator" as Migrator
+participant "MS SQL Server" as MSSQL
+participant "PostgreSQL" as PG
+
+User -> Main: python script.py cn --force
+Main -> Model: new TableModel("cn")
+Main -> Model: load_metadata(config_loader)
+Model -> MSSQL: check source exists
+Model -> PG: load metadata from mcl schema
+Model -> Main: metadata loaded
+
+Main -> Migrator: new TableMigrator(config_loader)
+Main -> Migrator: migrate_table(table_model, force=True)
+
+Migrator -> Model: check_source_exists()
+Model -> MSSQL: SELECT COUNT(*) FROM ags.cn
+Model -> Migrator: source exists: true
+
+Migrator -> Model: generate_table_ddl()
+Model -> Migrator: DDL generated
+
+Migrator -> PG: DROP TABLE IF EXISTS (if force)
+Migrator -> PG: CREATE TABLE ags.cn
+Migrator -> Model: table created
+
+Migrator -> Model: create_indexes()
+Model -> Migrator: indexes DDL
+Migrator -> PG: CREATE INDEX statements
+
+Migrator -> Model: create_foreign_keys()
+Model -> Migrator: foreign keys DDL
+Migrator -> PG: ALTER TABLE ADD CONSTRAINT
+
+Migrator -> Model: migrate_data()
+Migrator -> MSSQL: SELECT data from ags.cn
+Migrator -> PG: INSERT data into ags.cn
+Model -> Migrator: data migrated
+
+Migrator -> Model: validate_migration()
+Model -> MSSQL: SELECT COUNT(*) FROM ags.cn
+Model -> PG: SELECT COUNT(*) FROM ags.cn
+Model -> Migrator: validation passed
+
+Migrator -> Model: update_status("completed")
+Model -> PG: UPDATE mcl.migration_status
+Model -> Main: migration completed successfully
+
+@enduml
+
+
+
+

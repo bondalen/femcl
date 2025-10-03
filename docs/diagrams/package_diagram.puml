@@ -1,0 +1,54 @@
+@startuml
+!theme plain
+
+package "FEMCL Migration System" {
+    
+    package "Models" {
+        [TableModel]
+        [ColumnModel]
+        [IndexModel]
+        [ForeignKeyModel]
+        [UniqueConstraintModel]
+        [CheckConstraintModel]
+        [TriggerModel]
+    }
+    
+    package "Migrators" {
+        [TableMigrator]
+        [ConnectionManager]
+        [DDLGenerator]
+        [DataMigrator]
+        [Validator]
+    }
+    
+    package "Config" {
+        [ConfigLoader]
+        [DatabaseConfig]
+    }
+    
+    package "Utils" {
+        [Logger]
+        [ProgressTracker]
+        [ErrorHandler]
+    }
+    
+    package "Scripts" {
+        [simple_migrate.py]
+        [complete_migrate.py]
+        [migration_manager.py]
+    }
+}
+
+[Models] ..> [Config] : uses
+[Migrators] ..> [Models] : uses
+[Migrators] ..> [Config] : uses
+[Migrators] ..> [Utils] : uses
+[Scripts] ..> [Models] : uses
+[Scripts] ..> [Migrators] : uses
+[Scripts] ..> [Config] : uses
+
+@enduml
+
+
+
+

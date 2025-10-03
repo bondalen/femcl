@@ -1,0 +1,50 @@
+@startuml
+!theme plain
+
+package "FEMCL Migration System" {
+    
+    component [TableModel] as TM {
+        [ColumnModel]
+        [IndexModel]
+        [ForeignKeyModel]
+        [UniqueConstraintModel]
+        [CheckConstraintModel]
+        [TriggerModel]
+    }
+    
+    component [TableMigrator] as TMig {
+        [ConnectionManager]
+        [DDLGenerator]
+        [DataMigrator]
+        [Validator]
+    }
+    
+    component [ConfigLoader] as CL
+    
+    component [Database Connections] as DB {
+        [MS SQL Server]
+        [PostgreSQL]
+    }
+    
+    component [Metadata Schema] as MCL {
+        [mcl.postgres_tables]
+        [mcl.postgres_columns]
+        [mcl.postgres_indexes]
+        [mcl.postgres_foreign_keys]
+        [mcl.postgres_constraints]
+        [mcl.postgres_triggers]
+    }
+}
+
+TM ..> CL : uses
+TMig ..> CL : uses
+TMig ..> TM : operates on
+TMig ..> DB : connects to
+TM ..> MCL : reads from
+TMig ..> MCL : updates
+
+@enduml
+
+
+
+

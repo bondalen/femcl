@@ -1,0 +1,51 @@
+@startuml
+!theme plain
+
+state "Table Migration States" as States {
+    [*] --> Pending : initialize
+    
+    Pending --> LoadingMetadata : load_metadata()
+    LoadingMetadata --> MetadataLoaded : success
+    LoadingMetadata --> Error : failure
+    
+    MetadataLoaded --> Validating : validate_metadata()
+    Validating --> ReadyForMigration : validation passed
+    Validating --> Error : validation failed
+    
+    ReadyForMigration --> CreatingTable : create_table()
+    CreatingTable --> TableCreated : success
+    CreatingTable --> Error : failure
+    
+    TableCreated --> CreatingIndexes : create_indexes()
+    CreatingIndexes --> IndexesCreated : success
+    CreatingIndexes --> Error : failure
+    
+    IndexesCreated --> CreatingForeignKeys : create_foreign_keys()
+    CreatingForeignKeys --> ForeignKeysCreated : success
+    CreatingForeignKeys --> Error : failure
+    
+    ForeignKeysCreated --> CreatingConstraints : create_constraints()
+    CreatingConstraints --> ConstraintsCreated : success
+    CreatingConstraints --> Error : failure
+    
+    ConstraintsCreated --> CreatingTriggers : create_triggers()
+    CreatingTriggers --> TriggersCreated : success
+    CreatingTriggers --> Error : failure
+    
+    TriggersCreated --> MigratingData : migrate_data()
+    MigratingData --> DataMigrated : success
+    MigratingData --> Error : failure
+    
+    DataMigrated --> ValidatingMigration : validate_migration()
+    ValidatingMigration --> Completed : validation passed
+    ValidatingMigration --> Error : validation failed
+    
+    Error --> [*]
+    Completed --> [*]
+}
+
+@enduml
+
+
+
+

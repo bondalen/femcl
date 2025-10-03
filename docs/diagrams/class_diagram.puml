@@ -1,0 +1,204 @@
+@startuml
+
+package "FEMCL Migration Classes" {
+    
+    class TableModel {
+        - source_table_name: str
+        - migration_status: str
+        - source_exists: bool
+        - source_row_count: int
+        - migration_duration: str
+        - errors: List~str~
+        
+        ' ОБЩИЕ элементы таблицы (для всех типов)
+        - columns: List~ColumnModel~
+        - indexes: List~IndexModel~
+        - foreign_keys: List~ForeignKeyModel~
+        - unique_constraints: List~UniqueConstraintModel~
+        - check_constraints: List~CheckConstraintModel~
+        - triggers: List~TriggerModel~
+        
+        ' Общие методы
+        + load_metadata()
+        + check_source_exists()
+        + validate_metadata()
+        + get_migration_summary()
+        + log_error()
+        + update_status()
+        
+        ' ОБЩИЕ методы для элементов таблицы
+        + load_columns()
+        + load_indexes()
+        + load_foreign_keys()
+        + load_constraints()
+        + load_triggers()
+        + generate_table_ddl()
+        + generate_indexes_ddl()
+    }
+    
+    class RegularTableModel {
+        - target_table_name: str
+        
+        + generate_regular_table_ddl()
+        + migrate_regular_data()
+    }
+    
+    class BaseTableModel {
+        - target_base_table_name: str
+        - view_reference: ViewModel
+        
+        + generate_base_table_ddl()
+        + create_view()
+        + separate_columns()
+    }
+    
+    class ViewModel {
+        - view_name: str
+        - base_table_name: str
+        - computed_columns: List~ComputedColumnModel~
+        - function_mappings: List~FunctionMappingModel~
+        - view_definition: str
+        
+        + load_computed_columns()
+        + load_function_mappings()
+        + generate_view_ddl()
+        + validate_functions()
+        + map_mssql_to_postgres_functions()
+    }
+    
+    class ComputedColumnModel {
+        - name: str
+        - source_expression: str
+        - target_expression: str
+        - data_type: str
+        - is_mapped: bool
+        - function_mapping: FunctionMappingModel
+        - mapping_status: str
+        
+        + get_ddl_definition()
+        + validate()
+        + map_function()
+        + get_mapping_status()
+    }
+    
+    class FunctionMappingModel {
+        - source_function: str
+        - target_function: str
+        - mapping_type: str
+        - is_automatic: bool
+        - is_semi_automatic: bool
+        - is_manual: bool
+        
+        + get_mapping()
+        + validate_mapping()
+    }
+    
+    class ColumnModel {
+        - name: str
+        - source_name: str
+        - data_type: str
+        - is_nullable: bool
+        - is_identity: bool
+        - default_value: str
+        - ordinal_position: int
+        
+        + get_ddl_definition()
+        + validate()
+    }
+    
+    class IndexModel {
+        - name: str
+        - type: str
+        - is_unique: bool
+        - is_primary: bool
+        - columns: List~str~
+        - definition: str
+        
+        + get_ddl_definition()
+        + validate()
+    }
+    
+    class ForeignKeyModel {
+        - name: str
+        - columns: List~str~
+        - referenced_table: str
+        - referenced_columns: List~str~
+        - delete_action: str
+        - update_action: str
+        
+        + get_ddl_definition()
+        + validate()
+    }
+    
+    class UniqueConstraintModel {
+        - name: str
+        - columns: List~str~
+        
+        + get_ddl_definition()
+        + validate()
+    }
+    
+    class CheckConstraintModel {
+        - name: str
+        - check_clause: str
+        - column_name: str
+        
+        + get_ddl_definition()
+        + validate()
+    }
+    
+    class TriggerModel {
+        - name: str
+        - event_type: str
+        - trigger_type: str
+        - function_name: str
+        
+        + get_ddl_definition()
+        + validate()
+    }
+    
+    class TableMigrator {
+        - config_loader: ConfigLoader
+        - mssql_config: dict
+        - pg_config: dict
+        - mssql_conn: Connection
+        - pg_conn: Connection
+        
+        + get_mssql_connection()
+        + get_pg_connection()
+        + create_table()
+        + create_indexes()
+        + create_foreign_keys()
+        + create_constraints()
+        + create_triggers()
+        + migrate_data()
+        + validate_migration()
+        + migrate_table()
+    }
+}
+
+' Inheritance relationships
+TableModel <|-- RegularTableModel
+TableModel <|-- BaseTableModel
+
+' Composition relationships
+BaseTableModel ||--o{ ViewModel
+ViewModel ||--o{ ComputedColumnModel
+ViewModel ||--o{ FunctionMappingModel
+ComputedColumnModel ||--o{ FunctionMappingModel
+
+' TableModel содержит все общие элементы
+TableModel ||--o{ ColumnModel
+TableModel ||--o{ IndexModel
+TableModel ||--o{ ForeignKeyModel
+TableModel ||--o{ UniqueConstraintModel
+TableModel ||--o{ CheckConstraintModel
+TableModel ||--o{ TriggerModel
+
+' Usage relationships
+TableMigrator ..> TableModel
+TableMigrator ..> RegularTableModel
+TableMigrator ..> BaseTableModel
+TableMigrator ..> ViewModel
+
+@enduml
