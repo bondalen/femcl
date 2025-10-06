@@ -11,10 +11,10 @@ import argparse
 from datetime import datetime
 
 # Добавляем путь к модулям
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 
-from src.classes.table_migrator import TableMigrator
-from config.config_loader import ConfigLoader
+from src.code.migration.classes.table_migrator import TableMigrator
+from src.code.infrastructure.config.config_loader import ConfigLoader
 
 
 def main():

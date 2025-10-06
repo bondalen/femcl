@@ -64,7 +64,9 @@
             "attributes": {
               "id": "02",
               "description": "Создание структуры таблиц и перенос данных",
-              "predecessors": ["01"],
+              "predecessors": [
+                "01"
+              ],
               "validationCriteria": "Все таблицы созданы и данные перенесены"
             },
             "substages": [
@@ -140,7 +142,9 @@
             "attributes": {
               "id": "03",
               "description": "Создание представлений, процедур, функций, типов, последовательностей",
-              "predecessors": ["02"],
+              "predecessors": [
+                "02"
+              ],
               "validationCriteria": "Все объекты БД созданы и работают"
             },
             "substages": [
@@ -196,7 +200,9 @@
             "attributes": {
               "id": "04",
               "description": "Проверка корректности миграции и тестирование функциональности",
-              "predecessors": ["03"],
+              "predecessors": [
+                "03"
+              ],
               "validationCriteria": "Все критерии успеха выполнены"
             },
             "substages": [
@@ -232,148 +238,2161 @@
         ]
       },
       "modules": {
-        "tableListManager": "Управление списком таблиц",
-        "dependencyAnalyzer": "Анализ зависимостей",
-        "structureCreator": "Создание структуры таблицы",
-        "dataMigrator": "Перенос данных",
-        "foreignKeyCreator": "Создание внешних ключей"
-      }
-    },
-    "technology": {
-      "sourceDB": "MS SQL Server",
-      "targetDB": "PostgreSQL",
-      "programmingLanguage": "Python 3.11+",
-      "frameworks": ["SQLAlchemy", "psycopg2"],
-      "tools": ["Desktop Commander", "DBHub"],
-      "aiIntegration": "Правила AI в src/ai-rules/"
-    },
-    "database": {
-      "source": {
-        "name": "Fish_Eye",
-        "tables": 166,
-        "schemas": ["ags", "mcl"]
-      },
-      "target": {
-        "name": "fish_eye",
-        "schemas": ["ags", "mcl", "public"]
-      },
-      "controlSchema": {
-        "name": "mcl",
-        "tables": [
-          "mssql_tables",
-          "mssql_columns", 
-          "mssql_indexes",
-          "postgres_tables",
-          "postgres_columns",
-          "postgres_indexes",
-          "migration_log"
+        "metadata": {
+          "version": "1.0.0",
+          "lastUpdated": "2025-10-06",
+          "description": "Архитектура модулей системы миграции БД",
+          "status": "operational"
+        },
+        "list": [
+          {
+            "module": {
+              "id": "metadataGeneration",
+              "attributes": {
+                "name": "Модуль формирования метаданных",
+                "description": "Создание схемы mcl в целевой БД",
+                "purpose": "Анализ исходной БД и запись метаданных в mcl",
+                "status": "planned",
+                "location": "src/code/metadata/",
+                "entryPoint": "src/code/metadata/scripts/generate_metadata.py",
+                "dependencies": []
+              },
+              "components": [
+                {
+                  "component": {
+                    "id": "analyzer",
+                    "attributes": {
+                      "name": "Metadata Analyzer",
+                      "description": "Извлечение структуры исходной БД",
+                      "type": "classes",
+                      "location": "src/code/metadata/classes/",
+                      "responsibilities": [
+                        "Сканирование схем MS SQL",
+                        "Извлечение объектов БД",
+                        "Построение графа зависимостей"
+                      ],
+                      "status": "planned"
+                    },
+                    "classes": [
+                      {
+                        "class": {
+                          "id": "Analyzer",
+                          "attributes": {
+                            "name": "Analyzer",
+                            "location": "src/code/metadata/classes/analyzer.py",
+                            "responsibilities": [
+                              "Сканирование и каталогизация объектов БД"
+                            ],
+                            "dependsOn": [
+                              "ConnectionManager"
+                            ],
+                            "status": "planned"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "component": {
+                    "id": "transformer",
+                    "attributes": {
+                      "name": "Metadata Transformer",
+                      "description": "Нормализация метаданных под PostgreSQL",
+                      "type": "classes",
+                      "location": "src/code/metadata/classes/",
+                      "responsibilities": [
+                        "Маппинг типов данных",
+                        "Обработка вычисляемых колонок",
+                        "Преобразование функций"
+                      ],
+                      "status": "planned"
+                    },
+                    "classes": [
+                      {
+                        "class": {
+                          "id": "Transformer",
+                          "attributes": {
+                            "name": "Transformer",
+                            "location": "src/code/metadata/classes/transformer.py",
+                            "responsibilities": [
+                              "Преобразование метаданных MS SQL → PostgreSQL"
+                            ],
+                            "dependsOn": [
+                              "FunctionMappingModel"
+                            ],
+                            "status": "planned"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "component": {
+                    "id": "writer",
+                    "attributes": {
+                      "name": "Metadata Writer",
+                      "description": "Запись метаданных в схему mcl",
+                      "type": "classes",
+                      "location": "src/code/metadata/classes/",
+                      "responsibilities": [
+                        "Заполнение таблиц mcl.*",
+                        "Валидация ссылочной целостности"
+                      ],
+                      "status": "planned"
+                    },
+                    "classes": [
+                      {
+                        "class": {
+                          "id": "Writer",
+                          "attributes": {
+                            "name": "Writer",
+                            "location": "src/code/metadata/classes/writer.py",
+                            "responsibilities": [
+                              "Запись метаданных в БД"
+                            ],
+                            "dependsOn": [
+                              "ConfigLoader",
+                              "ConnectionManager"
+                            ],
+                            "status": "planned"
+                          }
+                        }
+                      }
+                    ],
+                    "scripts": [
+                      "src/code/metadata/scripts/generate_metadata.py"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "module": {
+              "id": "dataMigration",
+              "attributes": {
+                "name": "Модуль переноса данных",
+                "description": "Перенос данных по метаданным из схемы mcl",
+                "purpose": "DDL → Data → Indexes → FKs → Validation",
+                "status": "implemented",
+                "location": "src/code/migration/",
+                "entryPoint": "src/code/migration/scripts/migrate_table.py",
+                "dependencies": [
+                  "metadataGeneration",
+                  "infrastructure"
+                ]
+              },
+              "components": [
+                {
+                  "component": {
+                    "id": "migrator",
+                    "attributes": {
+                      "name": "Table Migrator",
+                      "description": "Оркестрация миграции одной таблицы",
+                      "type": "classes",
+                      "location": "src/code/migration/classes/",
+                      "responsibilities": [
+                        "Создание таблицы",
+                        "Перенос данных",
+                        "Создание индексов и ограничений",
+                        "Валидация результатов"
+                      ],
+                      "status": "implemented"
+                    },
+                    "classes": [
+                      {
+                        "class": {
+                          "id": "TableMigrator",
+                          "attributes": {
+                            "name": "TableMigrator",
+                            "location": "src/code/migration/classes/table_migrator.py",
+                            "responsibilities": [
+                              "Полный цикл миграции таблицы"
+                            ],
+                            "dependsOn": [
+                              "TableModel",
+                              "ConfigLoader",
+                              "ConnectionManager"
+                            ],
+                            "status": "implemented"
+                          }
+                        }
+                      }
+                    ],
+                    "scripts": [
+                      "src/code/migration/scripts/migrate_table.py"
+                    ]
+                  }
+                },
+                {
+                  "component": {
+                    "id": "tableModels",
+                    "attributes": {
+                      "name": "Table Models",
+                      "description": "Модели таблиц для миграции",
+                      "type": "classes",
+                      "location": "src/code/migration/classes/",
+                      "responsibilities": [
+                        "Загрузка метаданных из mcl",
+                        "Генерация DDL",
+                        "Обработка вычисляемых колонок → представления"
+                      ],
+                      "status": "implemented"
+                    },
+                    "classes": [
+                      {
+                        "class": {
+                          "id": "TableModel",
+                          "attributes": {
+                            "name": "TableModel",
+                            "location": "src/code/migration/classes/table_model.py",
+                            "responsibilities": [
+                              "Абстрактная базовая модель таблицы"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "RegularTableModel",
+                          "attributes": {
+                            "name": "RegularTableModel",
+                            "location": "src/code/migration/classes/regular_table_model.py",
+                            "responsibilities": [
+                              "Модель обычной таблицы без вычисляемых колонок"
+                            ],
+                            "dependsOn": [
+                              "TableModel"
+                            ],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "BaseTableModel",
+                          "attributes": {
+                            "name": "BaseTableModel",
+                            "location": "src/code/migration/classes/base_table_model.py",
+                            "responsibilities": [
+                              "Таблицы с вычисляемыми колонками → базовая таблица + представление"
+                            ],
+                            "dependsOn": [
+                              "TableModel",
+                              "ViewModel"
+                            ],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "ViewModel",
+                          "attributes": {
+                            "name": "ViewModel",
+                            "location": "src/code/migration/classes/view_model.py",
+                            "responsibilities": [
+                              "Генерация DDL для представлений"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "component": {
+                    "id": "dataElements",
+                    "attributes": {
+                      "name": "Data Element Models",
+                      "description": "Модели элементов таблиц: колонки, индексы, ключи, ограничения, триггеры, последовательности",
+                      "type": "classes",
+                      "location": "src/code/migration/classes/",
+                      "responsibilities": [
+                        "Представление элементов БД",
+                        "Генерация DDL для элементов"
+                      ],
+                      "status": "implemented"
+                    },
+                    "classes": [
+                      {
+                        "class": {
+                          "id": "ColumnModel",
+                          "attributes": {
+                            "name": "ColumnModel",
+                            "location": "src/code/migration/classes/column_model.py",
+                            "responsibilities": [
+                              "Модель колонки таблицы"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "ComputedColumnModel",
+                          "attributes": {
+                            "name": "ComputedColumnModel",
+                            "location": "src/code/migration/classes/computed_column_model.py",
+                            "responsibilities": [
+                              "Модель вычисляемой колонки"
+                            ],
+                            "dependsOn": [
+                              "ColumnModel"
+                            ],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "IndexModel",
+                          "attributes": {
+                            "name": "IndexModel",
+                            "location": "src/code/migration/classes/index_model.py",
+                            "responsibilities": [
+                              "Модель индекса"
+                            ],
+                            "dependsOn": [
+                              "IndexColumnModel"
+                            ],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "IndexColumnModel",
+                          "attributes": {
+                            "name": "IndexColumnModel",
+                            "location": "src/code/migration/classes/index_column_model.py",
+                            "responsibilities": [
+                              "Модель колонки индекса"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "ForeignKeyModel",
+                          "attributes": {
+                            "name": "ForeignKeyModel",
+                            "location": "src/code/migration/classes/foreign_key_model.py",
+                            "responsibilities": [
+                              "Модель внешнего ключа"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "UniqueConstraintModel",
+                          "attributes": {
+                            "name": "UniqueConstraintModel",
+                            "location": "src/code/migration/classes/unique_constraint_model.py",
+                            "responsibilities": [
+                              "Модель ограничения UNIQUE"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "CheckConstraintModel",
+                          "attributes": {
+                            "name": "CheckConstraintModel",
+                            "location": "src/code/migration/classes/check_constraint_model.py",
+                            "responsibilities": [
+                              "Модель ограничения CHECK"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "DefaultConstraintModel",
+                          "attributes": {
+                            "name": "DefaultConstraintModel",
+                            "location": "src/code/migration/classes/default_constraint_model.py",
+                            "responsibilities": [
+                              "Модель ограничения DEFAULT"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "TriggerModel",
+                          "attributes": {
+                            "name": "TriggerModel",
+                            "location": "src/code/migration/classes/trigger_model.py",
+                            "responsibilities": [
+                              "Модель триггера"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "SequenceModel",
+                          "attributes": {
+                            "name": "SequenceModel",
+                            "location": "src/code/migration/classes/sequence_model.py",
+                            "responsibilities": [
+                              "Модель последовательности"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "module": {
+              "id": "infrastructure",
+              "attributes": {
+                "name": "Модуль инфраструктуры",
+                "description": "Общие сервисы для всех модулей",
+                "purpose": "Подключения к БД, конфигурация, утилиты",
+                "status": "implemented",
+                "location": "src/code/infrastructure/",
+                "dependencies": []
+              },
+              "components": [
+                {
+                  "component": {
+                    "id": "connections",
+                    "attributes": {
+                      "name": "Connection Manager",
+                      "description": "Управление подключениями к БД",
+                      "type": "classes",
+                      "location": "src/code/infrastructure/classes/",
+                      "responsibilities": [
+                        "Подключение к MS SQL Server",
+                        "Подключение к PostgreSQL",
+                        "Управление пулом соединений",
+                        "Обработка ошибок подключения"
+                      ],
+                      "status": "planned"
+                    },
+                    "classes": [
+                      {
+                        "class": {
+                          "id": "ConnectionManager",
+                          "attributes": {
+                            "name": "ConnectionManager",
+                            "location": "src/code/infrastructure/classes/connection_manager.py",
+                            "responsibilities": [
+                              "Создание и управление подключениями к БД"
+                            ],
+                            "dependsOn": [
+                              "ConfigLoader"
+                            ],
+                            "status": "planned"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "component": {
+                    "id": "config",
+                    "attributes": {
+                      "name": "Config Loader",
+                      "description": "Загрузка и управление конфигурацией",
+                      "type": "config",
+                      "location": "src/code/infrastructure/config/",
+                      "responsibilities": [
+                        "Парсинг конфигурационных файлов",
+                        "Валидация настроек",
+                        "Предоставление доступа к конфигурации"
+                      ],
+                      "status": "implemented"
+                    },
+                    "classes": [
+                      {
+                        "class": {
+                          "id": "ConfigLoader",
+                          "attributes": {
+                            "name": "ConfigLoader",
+                            "location": "src/code/infrastructure/config/config_loader.py",
+                            "responsibilities": [
+                              "Загрузка и предоставление доступа к конфигурации приложения и БД"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      }
+                    ],
+                    "files": [
+                      "src/code/infrastructure/config/config.yaml",
+                      "src/code/infrastructure/config/README.md"
+                    ]
+                  }
+                },
+                {
+                  "component": {
+                    "id": "functionMapping",
+                    "attributes": {
+                      "name": "Function Mapping",
+                      "description": "Маппинг функций между MS SQL и PostgreSQL",
+                      "type": "classes",
+                      "location": "src/code/infrastructure/classes/",
+                      "responsibilities": [
+                        "Справочник функций MS SQL → PostgreSQL",
+                        "Политики преобразования функций"
+                      ],
+                      "status": "implemented"
+                    },
+                    "classes": [
+                      {
+                        "class": {
+                          "id": "FunctionMappingModel",
+                          "attributes": {
+                            "name": "FunctionMappingModel",
+                            "location": "src/code/infrastructure/classes/function_mapping_model.py",
+                            "responsibilities": [
+                              "Модель маппинга функций между БД"
+                            ],
+                            "dependsOn": [],
+                            "status": "implemented"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "FunctionMappingState",
+                          "attributes": {
+                            "name": "FunctionMappingState",
+                            "location": "src/code/infrastructure/classes/function_mapping_state.py",
+                            "responsibilities": [
+                              "Состояние маппинга функций"
+                            ],
+                            "dependsOn": [
+                              "FunctionMappingModel"
+                            ],
+                            "status": "implemented"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
         ]
       }
     },
+    "technology": {
+      "metadata": {
+        "version": "1.0.0",
+        "lastUpdated": "2025-10-06",
+        "description": "Технологический стек системы миграции БД",
+        "status": "operational"
+      },
+      "databases": {
+        "source": {
+          "name": "MS SQL Server",
+          "version": "2019+",
+          "driver": "ODBC Driver 17 for SQL Server",
+          "connection": "pyodbc",
+          "features": [
+            "Вычисляемые колонки",
+            "Identity колонки",
+            "Индексы с fill factor",
+            "Внешние ключи",
+            "Триггеры",
+            "Пользовательские типы"
+          ],
+          "limitations": [
+            "Несовместимость типов данных",
+            "Различия в синтаксисе функций"
+          ]
+        },
+        "target": {
+          "name": "PostgreSQL",
+          "version": "16.x",
+          "driver": "psycopg2-binary",
+          "connection": "psycopg2",
+          "features": [
+            "GENERATED ALWAYS AS IDENTITY",
+            "Представления для вычисляемых колонок",
+            "Concurrent индексы",
+            "Расширенные типы данных",
+            "Пользовательские функции"
+          ],
+          "advantages": [
+            "Лучшая производительность",
+            "Открытый исходный код",
+            "Расширяемость"
+          ]
+        }
+      },
+      "programming": {
+        "language": {
+          "name": "Python",
+          "version": "3.11+",
+          "features": [
+            "Type hints",
+            "Async/await",
+            "Dataclasses",
+            "Pathlib"
+          ],
+          "standards": "PEP 8, PEP 484"
+        },
+        "frameworks": {
+          "sqlalchemy": {
+            "name": "SQLAlchemy",
+            "version": "2.0+",
+            "purpose": "ORM для работы с БД",
+            "features": [
+              "Core API",
+              "ORM",
+              "Connection pooling",
+              "Transaction management"
+            ]
+          },
+          "psycopg2": {
+            "name": "psycopg2-binary",
+            "version": "2.9+",
+            "purpose": "PostgreSQL адаптер",
+            "features": [
+              "Connection management",
+              "Cursor support",
+              "Transaction support",
+              "Binary data support"
+            ]
+          },
+          "pyodbc": {
+            "name": "pyodbc",
+            "version": "4.0+",
+            "purpose": "ODBC драйвер для MS SQL",
+            "features": [
+              "ODBC connectivity",
+              "Parameter binding",
+              "Transaction support"
+            ]
+          }
+        },
+        "libraries": {
+          "pandas": {
+            "name": "pandas",
+            "version": "2.0+",
+            "purpose": "Анализ данных",
+            "usage": "Обработка больших объемов данных"
+          },
+          "datetime": {
+            "name": "datetime",
+            "purpose": "Работа с датами и временем",
+            "usage": "Логирование, валидация"
+          },
+          "typing": {
+            "name": "typing",
+            "purpose": "Типизация",
+            "usage": "Type hints для всех функций"
+          }
+        }
+      },
+      "tools": {
+        "desktopCommander": {
+          "name": "Desktop Commander",
+          "version": "Latest",
+          "purpose": "Файловые операции и управление системой",
+          "features": [
+            "Безопасные файловые операции",
+            "Управление процессами",
+            "Поиск и анализ файлов",
+            "Интеграция с Cursor IDE"
+          ],
+          "integration": "MCP протокол"
+        },
+        "dbhub": {
+          "name": "DBHub",
+          "version": "Latest",
+          "purpose": "Работа с базами данных",
+          "features": [
+            "SQL выполнение",
+            "Управление схемами",
+            "Анализ метаданных",
+            "Интеграция с PostgreSQL"
+          ],
+          "integration": "MCP протокол"
+        },
+        "cursor": {
+          "name": "Cursor IDE",
+          "version": "Latest",
+          "purpose": "Интегрированная среда разработки",
+          "features": [
+            "AI-ассистент",
+            "Автодополнение кода",
+            "Рефакторинг",
+            "Отладка"
+          ],
+          "integration": "MCP клиент"
+        }
+      },
+      "aiIntegration": {
+        "rulesEngine": {
+          "name": "AI Rules Engine",
+          "location": "src/ai-rules/",
+          "version": "1.0.0",
+          "purpose": "Автоматизация миграции через AI",
+          "features": [
+            "Выполнение стадий миграции",
+            "Анализ зависимостей",
+            "Трансформация данных",
+            "Валидация результатов"
+          ],
+          "categories": [
+            "migration",
+            "analysis",
+            "transformation",
+            "validation",
+            "stages"
+          ]
+        },
+        "mcpProtocol": {
+          "name": "Model Context Protocol",
+          "purpose": "Интеграция AI с инструментами",
+          "features": [
+            "Безопасное выполнение команд",
+            "Контекстное управление",
+            "Потоковая обработка"
+          ]
+        }
+      },
+      "infrastructure": {
+        "operatingSystem": {
+          "name": "Linux",
+          "distribution": "Fedora 42",
+          "kernel": "6.16.9-200.fc42.x86_64",
+          "shell": "/usr/bin/bash"
+        },
+        "pythonEnvironment": {
+          "version": "3.11+",
+          "packageManager": "pip",
+          "virtualEnvironment": "venv",
+          "dependencies": [
+            "psycopg2-binary>=2.9.0",
+            "sqlalchemy>=2.0.0",
+            "pandas>=2.0.0",
+            "pyodbc>=4.0.0"
+          ]
+        },
+        "databaseServers": {
+          "mssql": {
+            "version": "2019+",
+            "authentication": "SQL Server Authentication",
+            "encryption": "TrustServerCertificate=yes"
+          },
+          "postgresql": {
+            "version": "16.x",
+            "authentication": "md5",
+            "ssl": "prefer"
+          }
+        }
+      },
+      "development": {
+        "codeStandards": {
+          "style": "PEP 8",
+          "typing": "PEP 484",
+          "documentation": "Google Style Docstrings",
+          "testing": "pytest (planned)"
+        },
+        "versionControl": {
+          "system": "Git",
+          "repository": "https://github.com/bondalen/femcl.git",
+          "branching": "main",
+          "workflow": "Feature branches"
+        },
+        "deployment": {
+          "environment": "Development",
+          "configuration": "Environment variables",
+          "monitoring": "Migration logs",
+          "backup": "Database snapshots"
+        }
+      }
+    },
+    "database": {
+      "metadata": {
+        "version": "1.0.0",
+        "lastUpdated": "2025-10-06",
+        "description": "Конфигурация баз данных для миграции",
+        "status": "operational"
+      },
+      "source": {
+        "name": "Fish_Eye",
+        "type": "MS SQL Server",
+        "version": "2019+",
+        "tables": 166,
+        "schemas": [
+          "ags"
+        ],
+        "connection": {
+          "driver": "ODBC Driver 17 for SQL Server",
+          "authentication": "SQL Server Authentication",
+          "encryption": "TrustServerCertificate=yes"
+        },
+        "features": [
+          "Вычисляемые колонки",
+          "Identity колонки",
+          "Индексы с fill factor",
+          "Внешние ключи",
+          "Триггеры",
+          "Пользовательские типы"
+        ]
+      },
+      "target": {
+        "name": "fish_eye",
+        "type": "PostgreSQL",
+        "version": "16.x",
+        "schemas": [
+          "ags",
+          "mcl",
+          "public"
+        ],
+        "connection": {
+          "driver": "psycopg2-binary",
+          "authentication": "md5",
+          "ssl": "prefer"
+        },
+        "features": [
+          "GENERATED ALWAYS AS IDENTITY",
+          "Представления для вычисляемых колонок",
+          "Concurrent индексы",
+          "Расширенные типы данных",
+          "Пользовательские функции"
+        ]
+      },
+      "controlSchema": {
+        "name": "mcl",
+        "description": "Схема управления миграцией (Migration Control Layer)",
+        "tables": {
+          "metadata": {
+            "total": 66,
+            "lastUpdated": "2025-10-06",
+            "description": "Таблицы метаданных для управления миграцией"
+          },
+          "sourceMetadata": {
+            "mssql_tables": "Метаданные таблиц MS SQL",
+            "mssql_columns": "Метаданные колонок MS SQL",
+            "mssql_indexes": "Метаданные индексов MS SQL",
+            "mssql_foreign_keys": "Метаданные внешних ключей MS SQL",
+            "mssql_unique_constraints": "Метаданные уникальных ограничений MS SQL",
+            "mssql_check_constraints": "Метаданные проверочных ограничений MS SQL",
+            "mssql_default_constraints": "Метаданные ограничений по умолчанию MS SQL",
+            "mssql_triggers": "Метаданные триггеров MS SQL",
+            "mssql_functions": "Метаданные функций MS SQL",
+            "mssql_stored_procedures": "Метаданные хранимых процедур MS SQL",
+            "mssql_views": "Метаданные представлений MS SQL",
+            "mssql_objects": "Общие метаданные объектов MS SQL",
+            "mssql_base_types": "Базовые типы данных MS SQL",
+            "mssql_derived_types": "Производные типы данных MS SQL",
+            "mssql_identity_columns": "Identity колонки MS SQL",
+            "mssql_primary_keys": "Первичные ключи MS SQL",
+            "mssql_primary_key_columns": "Колонки первичных ключей MS SQL",
+            "mssql_index_columns": "Колонки индексов MS SQL",
+            "mssql_foreign_key_columns": "Колонки внешних ключей MS SQL",
+            "mssql_unique_constraint_columns": "Колонки уникальных ограничений MS SQL",
+            "mssql_check_constraint_columns": "Колонки проверочных ограничений MS SQL"
+          },
+          "targetMetadata": {
+            "postgres_tables": "Метаданные таблиц PostgreSQL",
+            "postgres_columns": "Метаданные колонок PostgreSQL",
+            "postgres_indexes": "Метаданные индексов PostgreSQL",
+            "postgres_foreign_keys": "Метаданные внешних ключей PostgreSQL",
+            "postgres_unique_constraints": "Метаданные уникальных ограничений PostgreSQL",
+            "postgres_check_constraints": "Метаданные проверочных ограничений PostgreSQL",
+            "postgres_default_constraints": "Метаданные ограничений по умолчанию PostgreSQL",
+            "postgres_triggers": "Метаданные триггеров PostgreSQL",
+            "postgres_functions": "Метаданные функций PostgreSQL",
+            "postgres_stored_procedures": "Метаданные хранимых процедур PostgreSQL",
+            "postgres_views": "Метаданные представлений PostgreSQL",
+            "postgres_sequences": "Метаданные последовательностей PostgreSQL",
+            "postgres_objects": "Общие метаданные объектов PostgreSQL",
+            "postgres_base_types": "Базовые типы данных PostgreSQL",
+            "postgres_derived_types": "Производные типы данных PostgreSQL",
+            "postgres_primary_keys": "Первичные ключи PostgreSQL",
+            "postgres_primary_key_columns": "Колонки первичных ключей PostgreSQL",
+            "postgres_index_columns": "Колонки индексов PostgreSQL",
+            "postgres_foreign_key_columns": "Колонки внешних ключей PostgreSQL",
+            "postgres_unique_constraint_columns": "Колонки уникальных ограничений PostgreSQL",
+            "postgres_check_constraint_columns": "Колонки проверочных ограничений PostgreSQL"
+          },
+          "migrationControl": {
+            "migration_tasks": "Задачи миграции",
+            "migration_status": "Статусы миграции",
+            "migration_events": "События миграции",
+            "migration_metrics": "Метрики миграции",
+            "migration_notifications": "Уведомления миграции",
+            "function_mapping_rules": "Правила маппинга функций"
+          },
+          "analysis": {
+            "table_dependencies": "Зависимости таблиц",
+            "referenced_table_readiness": "Готовность ссылочных таблиц",
+            "problems": "Проблемы миграции",
+            "problems_tb": "Проблемы таблиц",
+            "problems_tb_slt": "Проблемы таблиц (SLT)",
+            "problems_tb_slt_mp": "Проблемы таблиц (SLT MP)",
+            "problems_cm": "Проблемы вычисляемых колонок",
+            "problems_cm_slt": "Проблемы вычисляемых колонок (SLT)",
+            "problems_cm_slt_mp": "Проблемы вычисляемых колонок (SLT MP)",
+            "problems_ct": "Проблемы типов данных",
+            "problems_ct_slt": "Проблемы типов данных (SLT)",
+            "problems_ct_slt_mp": "Проблемы типов данных (SLT MP)"
+          }
+        }
+      },
+      "schemas": {
+        "ags": {
+          "name": "ags",
+          "description": "Основная схема данных приложения",
+          "source": "Схема в MS SQL Server",
+          "target": "Схема в PostgreSQL",
+          "tables": {
+            "source": 166,
+            "target": 1,
+            "status": "migration-in-progress"
+          }
+        },
+        "mcl": {
+          "name": "mcl",
+          "description": "Схема управления миграцией",
+          "tables": 66,
+          "purpose": "Хранение метаданных и управления процессом миграции",
+          "status": "operational"
+        },
+        "public": {
+          "name": "public",
+          "description": "Стандартная схема PostgreSQL",
+          "tables": 0,
+          "purpose": "Системные объекты PostgreSQL"
+        }
+      },
+      "relationships": {
+        "sourceToTarget": {
+          "mssql_tables": "postgres_tables",
+          "mssql_columns": "postgres_columns",
+          "mssql_indexes": "postgres_indexes",
+          "mssql_foreign_keys": "postgres_foreign_keys",
+          "mssql_unique_constraints": "postgres_unique_constraints",
+          "mssql_check_constraints": "postgres_check_constraints",
+          "mssql_default_constraints": "postgres_default_constraints",
+          "mssql_triggers": "postgres_triggers",
+          "mssql_functions": "postgres_functions",
+          "mssql_stored_procedures": "postgres_stored_procedures",
+          "mssql_views": "postgres_views"
+        },
+        "dependencies": {
+          "tables": "Колонки, индексы, ограничения",
+          "columns": "Типы данных, ограничения",
+          "indexes": "Колонки таблиц",
+          "foreign_keys": "Ссылочные таблицы и колонки",
+          "constraints": "Колонки таблиц",
+          "triggers": "Таблицы и функции",
+          "functions": "Типы данных, параметры",
+          "stored_procedures": "Функции, типы данных",
+          "views": "Таблицы и функции"
+        }
+      },
+      "migrationStatus": {
+        "currentTask": 2,
+        "totalTables": 166,
+        "completedTables": 1,
+        "inProgressTables": 0,
+        "pendingTables": 165,
+        "lastUpdate": "2025-10-06"
+      }
+    },
     "developmentObjects": {
+      "metadata": {
+        "version": "1.0.0",
+        "lastUpdated": "2025-10-06",
+        "description": "Объекты разработки системы миграции БД",
+        "status": "in-development"
+      },
       "codebase": {
-        "location": "src/",
-        "classes": "src/classes/",
-        "scripts": "src/scripts/",
-        "config": "src/config/"
+        "structure": {
+          "root": "src/",
+          "description": "Основной код системы миграции",
+          "language": "Python 3.11+",
+          "standards": "PEP 8, PEP 484"
+        },
+        "classes": {
+          "location": "src/classes/",
+          "description": "Классы системы миграции",
+          "files": {
+            "core": [
+              "table_migrator.py",
+              "table_model.py",
+              "base_table_model.py",
+              "regular_table_model.py",
+              "view_model.py"
+            ],
+            "dataModels": [
+              "column_model.py",
+              "index_model.py",
+              "foreign_key_model.py",
+              "unique_constraint_model.py",
+              "check_constraint_model.py",
+              "default_constraint_model.py",
+              "trigger_model.py",
+              "sequence_model.py"
+            ],
+            "specialized": [
+              "function_mapping_model.py",
+              "function_mapping_state.py",
+              "computed_column_model.py",
+              "index_column_model.py"
+            ]
+          },
+          "architecture": {
+            "inheritance": {
+              "TableModel": "Базовый абстрактный класс",
+              "RegularTableModel": "Наследует TableModel",
+              "BaseTableModel": "Наследует TableModel"
+            },
+            "composition": {
+              "TableMigrator": "Использует TableModel",
+              "BaseTableModel": "Содержит ViewModel",
+              "IndexModel": "Содержит IndexColumnModel"
+            }
+          }
+        },
+        "scripts": {
+          "location": "src/scripts/",
+          "description": "Скрипты для выполнения миграции",
+          "files": [
+            "migrate_table.py"
+          ],
+          "purpose": "Автоматизация процесса миграции"
+        },
+        "config": {
+          "location": "src/config/",
+          "description": "Конфигурационные файлы",
+          "purpose": "Управление настройками системы"
+        }
       },
       "aiRules": {
-        "location": "src/ai-rules/",
-        "mainFile": "ai-rules.json",
-        "categories": [
-          "migration",
-          "analysis", 
-          "transformation",
-          "validation",
-          "stages"
-        ],
+        "metadata": {
+          "version": "1.0.0",
+          "lastUpdated": "2025-10-06",
+          "description": "Правила AI для автоматизации миграции",
+          "status": "in-development"
+        },
+        "structure": {
+          "location": "src/ai-rules/",
+          "mainFile": "ai-rules.json",
+          "readme": "README.md"
+        },
+        "categories": {
+          "migration": {
+            "location": "src/ai-rules/migration/",
+            "description": "Правила миграции данных и структуры",
+            "purpose": "Автоматизация переноса таблиц и данных"
+          },
+          "analysis": {
+            "location": "src/ai-rules/analysis/",
+            "description": "Правила анализа БД и зависимостей",
+            "purpose": "Анализ структуры и связей"
+          },
+          "transformation": {
+            "location": "src/ai-rules/transformation/",
+            "description": "Правила трансформации данных",
+            "purpose": "Преобразование типов и функций"
+          },
+          "validation": {
+            "location": "src/ai-rules/validation/",
+            "description": "Правила валидации результатов",
+            "purpose": "Проверка корректности миграции"
+          },
+          "stages": {
+            "location": "src/ai-rules/stages/",
+            "description": "Правила выполнения стадий миграции",
+            "files": [
+              "stages-rules.json",
+              "stages-monitoring.json",
+              "stage-execution-rules.md"
+            ],
+            "purpose": "Управление процессом миграции"
+          }
+        },
+        "integration": {
+          "projectDocs": "docs/project/project-docs.json",
+          "stagesSource": "project.architecture.stages.rootStages",
+          "monitoringSchema": "mcl.migration_log"
+        },
         "developmentStatus": "in-development"
+      },
+      "documentation": {
+        "projectDocs": {
+          "location": "docs/project/",
+          "files": [
+            "project-docs.json",
+            "project-development.json",
+            "project-journal.json"
+          ],
+          "purpose": "Документация проекта"
+        },
+        "architecture": {
+          "location": "docs/project/architecture/",
+          "description": "Архитектурная документация",
+          "stages": "docs/project/architecture/stages/"
+        },
+        "rules": {
+          "location": "docs/project-documentation-rules.md",
+          "description": "Правила ведения документации"
+        }
+      },
+      "testing": {
+        "status": "planned",
+        "framework": "pytest",
+        "coverage": "target 80%+",
+        "types": [
+          "Unit tests",
+          "Integration tests",
+          "Migration tests"
+        ]
+      },
+      "deployment": {
+        "environment": "Development",
+        "configuration": "Environment variables",
+        "monitoring": "Migration logs",
+        "backup": "Database snapshots"
       }
     },
     "migration": {
+      "metadata": {
+        "version": "1.0.0",
+        "lastUpdated": "2025-10-06",
+        "description": "Текущее состояние миграции БД",
+        "status": "in-progress"
+      },
       "currentTask": {
         "id": 2,
         "name": "Fish_Eye Migration",
+        "description": "Миграция базы данных Fish_Eye с MS SQL Server на PostgreSQL",
         "status": "in-progress",
+        "startDate": "2025-08-25",
+        "lastUpdate": "2025-10-06",
         "progress": {
-          "stage1_1": "completed",
-          "stage1_2": "in-progress",
-          "stage2": "pending"
-        },
-        "tables": {
-          "total": 166,
-          "completed": 2,
-          "inProgress": 0,
-          "pending": 164
+          "stage1_1": {
+            "name": "Формирование метаданных",
+            "status": "completed",
+            "completionDate": "2025-10-01"
+          },
+          "stage1_2": {
+            "name": "Создание объектов и перенос данных",
+            "status": "in-progress",
+            "startDate": "2025-10-01",
+            "substages": {
+              "dependency_analysis": "completed",
+              "table_migration": "in-progress",
+              "index_creation": "pending",
+              "foreign_key_creation": "pending"
+            }
+          },
+          "stage2": {
+            "name": "Создание иных объектов БД",
+            "status": "pending"
+          },
+          "stage3": {
+            "name": "Валидация и тестирование",
+            "status": "pending"
+          }
         }
+      },
+      "tables": {
+        "total": 166,
+        "completed": 2,
+        "inProgress": 0,
+        "pending": 164,
+        "failed": 0,
+        "completionRate": "1.2%",
+        "recentlyCompleted": [
+          {
+            "name": "cn",
+            "completionDate": "2025-10-02T09:49:22.965Z",
+            "status": "completed"
+          },
+          {
+            "name": "accnt",
+            "completionDate": "2025-10-02T09:42:28.248Z",
+            "status": "completed"
+          }
+        ]
       },
       "algorithm": {
         "type": "BPMN",
         "approach": "Итеративный с учетом зависимостей",
         "sorting": "Алфавитная сортировка",
-        "dependencies": "Анализ внешних ключей"
-      }
+        "dependencies": "Анализ внешних ключей",
+        "execution": "Последовательная миграция таблиц"
+      },
+      "performance": {
+        "averageTableTime": "~5 минут",
+        "totalEstimatedTime": "~13.8 часов",
+        "currentThroughput": "2 таблицы за 2 дня",
+        "optimization": "Планируется пакетная обработка"
+      },
+      "quality": {
+        "dataIntegrity": "100%",
+        "structureAccuracy": "100%",
+        "errorRate": "0%",
+        "validationPassed": "2/2 таблиц"
+      },
+      "nextSteps": [
+        "Продолжение миграции таблиц",
+        "Создание индексов для завершенных таблиц",
+        "Анализ зависимостей для следующих таблиц",
+        "Оптимизация процесса миграции"
+      ]
     },
     "rules": {
+      "metadata": {
+        "version": "1.0.0",
+        "lastUpdated": "2025-10-06",
+        "description": "Правила и AI интеграция для миграции БД",
+        "status": "operational"
+      },
       "migration": {
-        "location": "docs-old/operations/rules/",
-        "categories": [
-          "general",
-          "single_table",
-          "function_mapping"
+        "legacy": {
+          "location": "docs-old/operations/rules/",
+          "categories": [
+            "general",
+            "single_table",
+            "function_mapping"
+          ],
+          "status": "implemented",
+          "description": "Устаревшие правила миграции"
+        },
+        "current": {
+          "location": "src/ai-rules/",
+          "status": "in-development",
+          "description": "Современные AI правила"
+        }
+      },
+      "aiRules": {
+        "metadata": {
+          "version": "1.0.0",
+          "lastUpdated": "2025-10-06",
+          "description": "Правила AI для автоматизации миграции",
+          "status": "in-development"
+        },
+        "structure": {
+          "location": "src/ai-rules/",
+          "mainFile": "ai-rules.json",
+          "readme": "README.md"
+        },
+        "categories": {
+          "migration": {
+            "location": "src/ai-rules/migration/",
+            "description": "Правила миграции данных и структуры",
+            "purpose": "Автоматизация переноса таблиц и данных",
+            "features": [
+              "Создание таблиц",
+              "Перенос данных",
+              "Создание индексов",
+              "Создание внешних ключей"
+            ]
+          },
+          "analysis": {
+            "location": "src/ai-rules/analysis/",
+            "description": "Правила анализа БД и зависимостей",
+            "purpose": "Анализ структуры и связей",
+            "features": [
+              "Анализ зависимостей таблиц",
+              "Определение порядка миграции",
+              "Выявление проблем совместимости"
+            ]
+          },
+          "transformation": {
+            "location": "src/ai-rules/transformation/",
+            "description": "Правила трансформации данных",
+            "purpose": "Преобразование типов и функций",
+            "features": [
+              "Маппинг типов данных",
+              "Трансформация функций",
+              "Обработка вычисляемых колонок"
+            ]
+          },
+          "validation": {
+            "location": "src/ai-rules/validation/",
+            "description": "Правила валидации результатов",
+            "purpose": "Проверка корректности миграции",
+            "features": [
+              "Проверка целостности данных",
+              "Валидация структуры",
+              "Тестирование производительности"
+            ]
+          },
+          "stages": {
+            "location": "src/ai-rules/stages/",
+            "description": "Правила выполнения стадий миграции",
+            "files": [
+              "stages-rules.json",
+              "stages-monitoring.json",
+              "stage-execution-rules.md"
+            ],
+            "purpose": "Управление процессом миграции",
+            "features": [
+              "Выполнение стадий",
+              "Мониторинг прогресса",
+              "Обработка ошибок"
+            ]
+          }
+        },
+        "integration": {
+          "projectDocs": "docs/project/project-docs.json",
+          "stagesSource": "project.architecture.stages.rootStages",
+          "monitoringSchema": "mcl.migration_log",
+          "cursorRules": ".cursorrules"
+        },
+        "development": {
+          "status": "in-development",
+          "testing": "planned",
+          "documentation": "in-progress",
+          "versioning": "semantic"
+        }
+      },
+      "cursorRules": {
+        "location": ".cursorrules",
+        "description": "Правила работы с Cursor IDE",
+        "features": [
+          "Режимы работы (разработка/эксплуатация)",
+          "Правила работы с датами",
+          "Обязательные инструменты",
+          "Специфика миграции БД"
         ],
         "status": "implemented"
       },
-      "aiRules": {
-        "location": "src/ai-rules/",
-        "status": "in-development"
+      "documentation": {
+        "location": "docs/project-documentation-rules.md",
+        "description": "Правила ведения документации",
+        "features": [
+          "Структура документации",
+          "Система нумерации",
+          "Правила обновления",
+          "Версионирование"
+        ],
+        "status": "implemented"
       }
     },
     "quality": {
+      "metadata": {
+        "version": "1.0.0",
+        "lastUpdated": "2025-10-06",
+        "description": "Метрики качества миграции БД",
+        "status": "operational"
+      },
       "criteria": {
-        "fullSuccess": "100% таблиц, данных, внешних ключей",
-        "partialSuccess": "≥95% таблиц с планом доработки",
-        "failure": "Критические ошибки структуры или потери данных"
+        "fullSuccess": {
+          "description": "100% таблиц, данных, внешних ключей",
+          "threshold": "100%",
+          "requirements": [
+            "Все таблицы мигрированы",
+            "Все данные перенесены без потерь",
+            "Все внешние ключи созданы",
+            "Все индексы созданы",
+            "Валидация прошла успешно"
+          ]
+        },
+        "partialSuccess": {
+          "description": "≥95% таблиц с планом доработки",
+          "threshold": "95%",
+          "requirements": [
+            "Минимум 95% таблиц мигрированы",
+            "План доработки для оставшихся таблиц",
+            "Критические данные перенесены",
+            "Основная функциональность работает"
+          ]
+        },
+        "failure": {
+          "description": "Критические ошибки структуры или потери данных",
+          "threshold": "<95%",
+          "indicators": [
+            "Потеря данных",
+            "Критические ошибки структуры",
+            "Невозможность восстановления",
+            "Нарушение целостности"
+          ]
+        }
       },
       "metrics": {
-        "successRate": "Процент успешных операций",
-        "performance": "Время выполнения запросов",
-        "dataQuality": "Качество перенесенных данных"
+        "successRate": {
+          "name": "Процент успешных операций",
+          "calculation": "(Успешные операции / Всего операций) * 100%",
+          "target": "≥95%",
+          "current": "100% (2/2 таблиц)"
+        },
+        "performance": {
+          "name": "Время выполнения запросов",
+          "measurements": [
+            "Среднее время миграции таблицы",
+            "Время создания индексов",
+            "Время переноса данных",
+            "Время валидации"
+          ],
+          "targets": {
+            "tableMigration": "≤10 минут",
+            "indexCreation": "≤5 минут",
+            "dataTransfer": "≤15 минут",
+            "validation": "≤2 минуты"
+          },
+          "current": {
+            "averageTableTime": "~5 минут",
+            "optimization": "Планируется пакетная обработка"
+          }
+        },
+        "dataQuality": {
+          "name": "Качество перенесенных данных",
+          "measurements": [
+            "Точность переноса данных",
+            "Сохранение типов данных",
+            "Целостность связей",
+            "Производительность запросов"
+          ],
+          "targets": {
+            "dataAccuracy": "100%",
+            "typePreservation": "100%",
+            "referentialIntegrity": "100%",
+            "queryPerformance": "≥90% от исходной"
+          },
+          "current": {
+            "dataIntegrity": "100%",
+            "structureAccuracy": "100%",
+            "errorRate": "0%"
+          }
+        }
+      },
+      "kpi": {
+        "migration": {
+          "completionRate": {
+            "name": "Процент завершения миграции",
+            "calculation": "(Завершенные таблицы / Всего таблиц) * 100%",
+            "target": "100%",
+            "current": "1.2% (2/166)"
+          },
+          "errorRate": {
+            "name": "Процент ошибок",
+            "calculation": "(Ошибки / Всего операций) * 100%",
+            "target": "≤5%",
+            "current": "0%"
+          },
+          "throughput": {
+            "name": "Пропускная способность",
+            "measurement": "Таблиц в день",
+            "target": "≥10 таблиц/день",
+            "current": "1 таблица/день"
+          }
+        },
+        "technical": {
+          "systemUptime": {
+            "name": "Время работы системы",
+            "target": "≥99%",
+            "current": "100%"
+          },
+          "resourceUtilization": {
+            "name": "Использование ресурсов",
+            "targets": {
+              "CPU": "≤80%",
+              "Memory": "≤80%",
+              "Disk": "≤90%"
+            }
+          },
+          "responseTime": {
+            "name": "Время отклика",
+            "target": "≤5 секунд",
+            "current": "~2 секунды"
+          }
+        }
+      },
+      "measurements": {
+        "automated": [
+          "Подсчет строк в исходной и целевой таблицах",
+          "Проверка типов данных",
+          "Валидация ограничений",
+          "Тестирование производительности запросов"
+        ],
+        "manual": [
+          "Визуальная проверка данных",
+          "Тестирование бизнес-логики",
+          "Проверка пользовательских интерфейсов",
+          "Валидация отчетов"
+        ]
+      },
+      "thresholds": {
+        "warning": {
+          "completionRate": "<90%",
+          "errorRate": ">5%",
+          "performance": ">150% от целевого времени"
+        },
+        "critical": {
+          "completionRate": "<80%",
+          "errorRate": ">10%",
+          "dataLoss": ">0%",
+          "systemFailure": "Любые системные сбои"
+        }
+      },
+      "monitoring": {
+        "realTime": [
+          "Статус миграции таблиц",
+          "Количество ошибок",
+          "Время выполнения операций",
+          "Использование ресурсов"
+        ],
+        "periodic": [
+          "Еженедельные отчеты о прогрессе",
+          "Ежемесячный анализ качества",
+          "Квартальная оценка производительности"
+        ]
       }
     },
     "deployment": {
-      "environment": "Ubuntu 24.04",
-      "database": "PostgreSQL 16.x",
-      "python": "3.11+",
-      "dependencies": ["psycopg2-binary", "sqlalchemy", "pandas"]
+      "metadata": {
+        "version": "1.0.0",
+        "lastUpdated": "2025-10-06",
+        "description": "Процедуры развертывания системы миграции БД",
+        "status": "operational"
+      },
+      "environment": {
+        "operatingSystem": {
+          "name": "Linux",
+          "distribution": "Fedora 42",
+          "kernel": "6.16.9-200.fc42.x86_64",
+          "shell": "/usr/bin/bash"
+        },
+        "database": {
+          "source": {
+            "name": "MS SQL Server",
+            "version": "2019+",
+            "driver": "ODBC Driver 17 for SQL Server",
+            "authentication": "SQL Server Authentication"
+          },
+          "target": {
+            "name": "PostgreSQL",
+            "version": "16.x",
+            "driver": "psycopg2-binary",
+            "authentication": "md5"
+          }
+        },
+        "python": {
+          "version": "3.11+",
+          "packageManager": "pip",
+          "virtualEnvironment": "venv"
+        }
+      },
+      "dependencies": {
+        "core": [
+          "psycopg2-binary>=2.9.0",
+          "sqlalchemy>=2.0.0",
+          "pandas>=2.0.0",
+          "pyodbc>=4.0.0"
+        ],
+        "development": [
+          "pytest>=7.0.0",
+          "black>=23.0.0",
+          "flake8>=6.0.0",
+          "mypy>=1.0.0"
+        ],
+        "tools": [
+          "Desktop Commander",
+          "DBHub",
+          "Cursor IDE"
+        ]
+      },
+      "installation": {
+        "prerequisites": [
+          "Python 3.11+",
+          "PostgreSQL 16.x",
+          "MS SQL Server 2019+",
+          "ODBC Driver 17 for SQL Server",
+          "Git"
+        ],
+        "steps": [
+          {
+            "step": 1,
+            "name": "Клонирование репозитория",
+            "command": "git clone https://github.com/bondalen/femcl.git",
+            "description": "Получение исходного кода"
+          },
+          {
+            "step": 2,
+            "name": "Создание виртуального окружения",
+            "command": "python -m venv venv",
+            "description": "Изоляция зависимостей"
+          },
+          {
+            "step": 3,
+            "name": "Активация окружения",
+            "command": "source venv/bin/activate",
+            "description": "Активация виртуального окружения"
+          },
+          {
+            "step": 4,
+            "name": "Установка зависимостей",
+            "command": "pip install -r requirements.txt",
+            "description": "Установка Python пакетов"
+          },
+          {
+            "step": 5,
+            "name": "Настройка конфигурации",
+            "command": "cp config/config.example.json config/config.json",
+            "description": "Создание конфигурационного файла"
+          },
+          {
+            "step": 6,
+            "name": "Инициализация БД",
+            "command": "python scripts/init_database.py",
+            "description": "Создание схемы mcl"
+          }
+        ]
+      },
+      "configuration": {
+        "database": {
+          "mssql": {
+            "server": "localhost",
+            "port": 1433,
+            "database": "Fish_Eye",
+            "user": "migration_user",
+            "password": "secure_password",
+            "driver": "ODBC Driver 17 for SQL Server",
+            "trustServerCertificate": true
+          },
+          "postgresql": {
+            "host": "localhost",
+            "port": 5432,
+            "database": "fish_eye",
+            "user": "migration_user",
+            "password": "secure_password",
+            "ssl": "prefer"
+          }
+        },
+        "application": {
+          "logLevel": "INFO",
+          "batchSize": 1000,
+          "maxRetries": 3,
+          "timeout": 300
+        }
+      },
+      "procedures": {
+        "development": {
+          "name": "Развертывание для разработки",
+          "steps": [
+            "Установка зависимостей",
+            "Настройка конфигурации",
+            "Инициализация БД",
+            "Запуск тестов",
+            "Настройка IDE"
+          ],
+          "estimatedTime": "30 минут"
+        },
+        "production": {
+          "name": "Развертывание в продакшн",
+          "steps": [
+            "Подготовка сервера",
+            "Установка зависимостей",
+            "Настройка безопасности",
+            "Инициализация БД",
+            "Настройка мониторинга",
+            "Тестирование",
+            "Запуск миграции"
+          ],
+          "estimatedTime": "2 часа"
+        }
+      },
+      "monitoring": {
+        "logs": {
+          "location": "logs/",
+          "rotation": "daily",
+          "retention": "30 дней",
+          "levels": [
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "CRITICAL"
+          ]
+        },
+        "metrics": {
+          "migrationProgress": "Процент завершения",
+          "errorRate": "Частота ошибок",
+          "performance": "Время выполнения",
+          "resourceUsage": "Использование ресурсов"
+        },
+        "alerts": {
+          "errorThreshold": ">5% ошибок",
+          "performanceThreshold": ">150% от целевого времени",
+          "resourceThreshold": ">90% использования"
+        }
+      },
+      "backup": {
+        "strategy": "Перед началом миграции",
+        "frequency": "Ежедневно",
+        "retention": "30 дней",
+        "location": "backups/",
+        "verification": "Автоматическая проверка целостности"
+      },
+      "rollback": {
+        "scenarios": [
+          "Критические ошибки миграции",
+          "Потеря данных",
+          "Проблемы производительности",
+          "Нарушение целостности"
+        ],
+        "procedures": [
+          "Остановка миграции",
+          "Восстановление из резервной копии",
+          "Анализ причин",
+          "Планирование исправлений"
+        ],
+        "estimatedTime": "1-4 часа"
+      }
     },
-
     "risks": {
-      "technical": [
-        "Несовместимость типов данных",
-        "Проблемы с вычисляемыми колонками",
-        "Циклические зависимости"
-      ],
-      "mitigation": [
-        "Система маппинга функций",
-        "Представления для вычисляемых колонок",
-        "Итеративный подход к зависимостям"
-      ]
+      "metadata": {
+        "version": "1.0.0",
+        "lastUpdated": "2025-10-06",
+        "description": "Анализ рисков миграции БД",
+        "status": "operational"
+      },
+      "categories": {
+        "technical": {
+          "name": "Технические риски",
+          "description": "Риски, связанные с техническими аспектами миграции",
+          "risks": [
+            {
+              "name": "Несовместимость типов данных",
+              "probability": "Medium",
+              "impact": "High",
+              "description": "Различия в типах данных между MS SQL и PostgreSQL",
+              "mitigation": "Система маппинга типов данных",
+              "status": "Mitigated"
+            },
+            {
+              "name": "Проблемы с вычисляемыми колонками",
+              "probability": "High",
+              "impact": "Medium",
+              "description": "Вычисляемые колонки не поддерживаются в PostgreSQL",
+              "mitigation": "Представления для вычисляемых колонок",
+              "status": "Mitigated"
+            },
+            {
+              "name": "Циклические зависимости",
+              "probability": "Medium",
+              "impact": "High",
+              "description": "Циклические ссылки между таблицами",
+              "mitigation": "Итеративный подход к зависимостям",
+              "status": "Mitigated"
+            },
+            {
+              "name": "Производительность запросов",
+              "probability": "Medium",
+              "impact": "Medium",
+              "description": "Снижение производительности после миграции",
+              "mitigation": "Оптимизация индексов и запросов",
+              "status": "Monitoring"
+            },
+            {
+              "name": "Ограничения PostgreSQL",
+              "probability": "Low",
+              "impact": "Medium",
+              "description": "Функциональные ограничения PostgreSQL",
+              "mitigation": "Адаптация кода и запросов",
+              "status": "Monitoring"
+            }
+          ]
+        },
+        "data": {
+          "name": "Риски данных",
+          "description": "Риски потери или повреждения данных",
+          "risks": [
+            {
+              "name": "Потеря данных при миграции",
+              "probability": "Low",
+              "impact": "Critical",
+              "description": "Потеря данных во время переноса",
+              "mitigation": "Резервное копирование и валидация",
+              "status": "Mitigated"
+            },
+            {
+              "name": "Нарушение целостности данных",
+              "probability": "Medium",
+              "impact": "High",
+              "description": "Нарушение связей между таблицами",
+              "mitigation": "Валидация внешних ключей",
+              "status": "Mitigated"
+            },
+            {
+              "name": "Проблемы с кодировкой",
+              "probability": "Low",
+              "impact": "Medium",
+              "description": "Проблемы с кодировкой символов",
+              "mitigation": "Проверка кодировки и конвертация",
+              "status": "Monitoring"
+            }
+          ]
+        },
+        "operational": {
+          "name": "Операционные риски",
+          "description": "Риски, связанные с операционными аспектами",
+          "risks": [
+            {
+              "name": "Простой системы",
+              "probability": "Medium",
+              "impact": "High",
+              "description": "Простой системы во время миграции",
+              "mitigation": "Планирование миграции в нерабочее время",
+              "status": "Mitigated"
+            },
+            {
+              "name": "Недостаток ресурсов",
+              "probability": "Low",
+              "impact": "Medium",
+              "description": "Недостаток вычислительных ресурсов",
+              "mitigation": "Мониторинг ресурсов и масштабирование",
+              "status": "Monitoring"
+            },
+            {
+              "name": "Ошибки конфигурации",
+              "probability": "Medium",
+              "impact": "Medium",
+              "description": "Ошибки в настройке системы",
+              "mitigation": "Автоматизированная конфигурация и тестирование",
+              "status": "Mitigated"
+            }
+          ]
+        },
+        "business": {
+          "name": "Бизнес-риски",
+          "description": "Риски, влияющие на бизнес-процессы",
+          "risks": [
+            {
+              "name": "Нарушение бизнес-процессов",
+              "probability": "Low",
+              "impact": "Critical",
+              "description": "Нарушение работы приложения",
+              "mitigation": "Тщательное тестирование и валидация",
+              "status": "Mitigated"
+            },
+            {
+              "name": "Превышение бюджета",
+              "probability": "Medium",
+              "impact": "Medium",
+              "description": "Превышение запланированного бюджета",
+              "mitigation": "Контроль ресурсов и планирование",
+              "status": "Monitoring"
+            },
+            {
+              "name": "Задержка сроков",
+              "probability": "Medium",
+              "impact": "Medium",
+              "description": "Превышение запланированных сроков",
+              "mitigation": "Реалистичное планирование и мониторинг",
+              "status": "Monitoring"
+            }
+          ]
+        }
+      },
+      "mitigation": {
+        "strategies": [
+          {
+            "name": "Резервное копирование",
+            "description": "Регулярное создание резервных копий",
+            "frequency": "Перед каждой миграцией",
+            "retention": "30 дней"
+          },
+          {
+            "name": "Валидация данных",
+            "description": "Проверка целостности данных",
+            "frequency": "После каждой миграции",
+            "automation": "Автоматизированная валидация"
+          },
+          {
+            "name": "Тестирование",
+            "description": "Тщательное тестирование системы",
+            "types": [
+              "Unit",
+              "Integration",
+              "Performance"
+            ],
+            "coverage": "≥80%"
+          },
+          {
+            "name": "Мониторинг",
+            "description": "Непрерывный мониторинг системы",
+            "metrics": [
+              "Производительность",
+              "Ошибки",
+              "Ресурсы"
+            ],
+            "alerts": "Автоматические уведомления"
+          }
+        ]
+      },
+      "contingency": {
+        "plans": [
+          {
+            "scenario": "Критическая ошибка миграции",
+            "response": "Немедленная остановка и откат",
+            "timeframe": "≤1 часа",
+            "responsible": "Команда разработки"
+          },
+          {
+            "scenario": "Потеря данных",
+            "response": "Восстановление из резервной копии",
+            "timeframe": "≤4 часа",
+            "responsible": "Администратор БД"
+          },
+          {
+            "scenario": "Проблемы производительности",
+            "response": "Оптимизация и масштабирование",
+            "timeframe": "≤24 часа",
+            "responsible": "Команда разработки"
+          }
+        ]
+      },
+      "monitoring": {
+        "indicators": [
+          "Процент успешных миграций",
+          "Время выполнения операций",
+          "Количество ошибок",
+          "Использование ресурсов"
+        ],
+        "thresholds": {
+          "warning": {
+            "errorRate": ">5%",
+            "performance": ">150% от целевого",
+            "resources": ">80%"
+          },
+          "critical": {
+            "errorRate": ">10%",
+            "dataLoss": ">0%",
+            "systemFailure": "Любые сбои"
+          }
+        }
+      }
     },
     "resources": {
-      "team": ["Александр"],
-      "tools": ["Desktop Commander", "DBHub", "PostgreSQL", "Python"],
-      "documentation": "docs/",
-      "reports": "docs-old/operations/reports/"
-    },
-    "TODO": {
-      "sectionsToComplete": [
-        "Детальные характеристики классов системы",
-        "Полная конфигурация базы данных",
-        "Детальные метрики качества",
-        "Процедуры развертывания",
-        "Планы тестирования"
-    ]
+      "metadata": {
+        "version": "1.0.0",
+        "lastUpdated": "2025-10-06",
+        "description": "Ресурсы проекта миграции БД",
+        "status": "operational"
+      },
+      "team": {
+        "members": [
+          {
+            "name": "Александр",
+            "role": "Lead Developer",
+            "responsibilities": [
+              "Архитектура системы",
+              "Разработка кода",
+              "Управление проектом",
+              "Техническое руководство"
+            ],
+            "skills": [
+              "Python",
+              "PostgreSQL",
+              "MS SQL Server",
+              "Database Migration",
+              "AI Integration"
+            ],
+            "availability": "Full-time",
+            "timezone": "UTC+3"
+          }
+        ],
+        "structure": {
+          "size": "1 человек",
+          "organization": "Flat structure",
+          "communication": "Direct",
+          "decisionMaking": "Centralized"
+        }
+      },
+      "tools": {
+        "development": {
+          "ide": {
+            "name": "Cursor IDE",
+            "version": "Latest",
+            "purpose": "Разработка с AI-ассистентом",
+            "features": [
+              "AI-автодополнение",
+              "Рефакторинг",
+              "Отладка",
+              "Интеграция с MCP"
+            ]
+          },
+          "versionControl": {
+            "name": "Git",
+            "repository": "https://github.com/bondalen/femcl.git",
+            "branching": "main",
+            "workflow": "Feature branches"
+          }
+        },
+        "migration": {
+          "desktopCommander": {
+            "name": "Desktop Commander",
+            "version": "Latest",
+            "purpose": "Файловые операции и управление системой",
+            "features": [
+              "Безопасные файловые операции",
+              "Управление процессами",
+              "Поиск и анализ файлов"
+            ]
+          },
+          "dbhub": {
+            "name": "DBHub",
+            "version": "Latest",
+            "purpose": "Работа с базами данных",
+            "features": [
+              "SQL выполнение",
+              "Управление схемами",
+              "Анализ метаданных"
+            ]
+          }
+        },
+        "databases": {
+          "mssql": {
+            "name": "MS SQL Server",
+            "version": "2019+",
+            "purpose": "Исходная база данных",
+            "driver": "ODBC Driver 17 for SQL Server"
+          },
+          "postgresql": {
+            "name": "PostgreSQL",
+            "version": "16.x",
+            "purpose": "Целевая база данных",
+            "driver": "psycopg2-binary"
+          }
+        },
+        "programming": {
+          "python": {
+            "name": "Python",
+            "version": "3.11+",
+            "purpose": "Основной язык разработки",
+            "packages": [
+              "psycopg2-binary",
+              "sqlalchemy",
+              "pandas",
+              "pyodbc"
+            ]
+          }
+        }
+      },
+      "infrastructure": {
+        "hardware": {
+          "server": {
+            "os": "Linux Fedora 42",
+            "kernel": "6.16.9-200.fc42.x86_64",
+            "shell": "/usr/bin/bash",
+            "specifications": "Development workstation"
+          }
+        },
+        "software": {
+          "operatingSystem": "Fedora 42",
+          "python": "3.11+",
+          "databases": [
+            "PostgreSQL 16.x",
+            "MS SQL Server 2019+"
+          ],
+          "tools": [
+            "Git",
+            "Cursor IDE",
+            "Desktop Commander",
+            "DBHub"
+          ]
+        },
+        "network": {
+          "connectivity": "High-speed internet",
+          "security": "VPN and secure connections",
+          "backup": "Cloud and local storage"
+        }
+      },
+      "documentation": {
+        "project": {
+          "location": "docs/project/",
+          "files": [
+            "project-docs.json",
+            "project-development.json",
+            "project-journal.json"
+          ],
+          "purpose": "Документация проекта"
+        },
+        "architecture": {
+          "location": "docs/project/architecture/",
+          "description": "Архитектурная документация",
+          "stages": "docs/project/architecture/stages/"
+        },
+        "rules": {
+          "location": "docs/project-documentation-rules.md",
+          "description": "Правила ведения документации"
+        },
+        "legacy": {
+          "location": "docs-old/operations/reports/",
+          "description": "Устаревшие отчеты и документация"
+        }
+      },
+      "codebase": {
+        "source": {
+          "location": "src/",
+          "language": "Python 3.11+",
+          "standards": "PEP 8, PEP 484"
+        },
+        "classes": {
+          "location": "src/classes/",
+          "description": "Основные классы системы",
+          "count": "20+ файлов"
+        },
+        "scripts": {
+          "location": "src/scripts/",
+          "description": "Скрипты миграции",
+          "count": "1 файл"
+        },
+        "aiRules": {
+          "location": "src/ai-rules/",
+          "description": "Правила AI",
+          "count": "5 категорий"
+        }
+      },
+      "budget": {
+        "development": {
+          "time": "Неограниченно (личный проект)",
+          "tools": "Бесплатные/открытые",
+          "infrastructure": "Существующая"
+        },
+        "operational": {
+          "maintenance": "Минимальные",
+          "monitoring": "Автоматизированное",
+          "backup": "Локальное"
+        }
       }
     }
   }
+}
