@@ -1,0 +1,379 @@
+{
+  "project": {
+    "metadata": {
+      "name": "FEMCL",
+      "fullName": "Fish Eye Migration Control Layer",
+      "version": "1.0.0",
+      "description": "Универсальная система миграции БД MS SQL Server → PostgreSQL",
+      "created": "2025-08-25",
+      "lastUpdated": "2025-10-06",
+      "status": "in-development",
+      "author": "Александр",
+      "repository": "https://github.com/bondalen/femcl.git"
+    },
+    "architecture": {
+      "approach": "Двухэтапный подход к миграции БД",
+      "stages": {
+        "metadata": {
+          "version": "1.0.0",
+          "status": "operational",
+          "lastUpdated": "2025-10-06",
+          "description": "Процесс работы по переносу базы данных при эксплуатации"
+        },
+        "numbering": {
+          "system": "hierarchical",
+          "description": "01, 01.01, 01.01.01, 01.01.01.01...",
+          "maxPerLevel": 99
+        },
+        "docs": {
+          "spec": "docs/project/architecture/stages/STAGES_SPEC.md",
+          "perStageBaseDir": "docs/project/architecture/stages/"
+        },
+        "rootStages": [
+          {
+            "displayName": "Подготовка к миграции. № 01",
+            "attributes": {
+              "id": "01",
+              "description": "Инициализация процесса миграции БД",
+              "predecessors": [],
+              "validationCriteria": "Проверка подключений, валидация метаданных"
+            },
+            "substages": [
+              {
+                "displayName": "Проверка подключений к БД. № 01.01",
+                "attributes": {
+                  "id": "01.01",
+                  "description": "Тестирование подключений к MS SQL Server и PostgreSQL",
+                  "validationCriteria": "Успешное подключение к обеим БД"
+                },
+                "substages": []
+              },
+              {
+                "displayName": "Валидация метаданных. № 01.02",
+                "attributes": {
+                  "id": "01.02",
+                  "description": "Проверка корректности метаданных в схеме mcl",
+                  "validationCriteria": "Все метаданные корректны"
+                },
+                "substages": []
+              }
+            ]
+          },
+          {
+            "displayName": "Этап 1: Формирование таблиц и перенос данных. № 02",
+            "attributes": {
+              "id": "02",
+              "description": "Создание структуры таблиц и перенос данных",
+              "predecessors": ["01"],
+              "validationCriteria": "Все таблицы созданы и данные перенесены"
+            },
+            "substages": [
+              {
+                "displayName": "Этап 1.1: Формирование метаданных. № 02.01",
+                "attributes": {
+                  "id": "02.01",
+                  "description": "Создание метаданных целевой схемы PostgreSQL",
+                  "validationCriteria": "Метаданные созданы для всех таблиц"
+                },
+                "substages": []
+              },
+              {
+                "displayName": "Этап 1.2: Создание объектов и перенос данных. № 02.02",
+                "attributes": {
+                  "id": "02.02",
+                  "description": "Создание физических таблиц и перенос данных",
+                  "validationCriteria": "Все таблицы созданы со всеми объектами"
+                },
+                "substages": [
+                  {
+                    "displayName": "Анализ зависимостей таблиц. № 02.02.01",
+                    "attributes": {
+                      "id": "02.02.01",
+                      "description": "Определение порядка миграции на основе внешних ключей",
+                      "validationCriteria": "Граф зависимостей построен"
+                    },
+                    "substages": []
+                  },
+                  {
+                    "displayName": "Миграция таблиц по алгоритму BPMN. № 02.02.02",
+                    "attributes": {
+                      "id": "02.02.02",
+                      "description": "Последовательная миграция таблиц с учетом зависимостей",
+                      "validationCriteria": "Все 166 таблиц мигрированы"
+                    },
+                    "substages": [
+                      {
+                        "displayName": "Создание структуры таблицы. № 02.02.02.01",
+                        "attributes": {
+                          "id": "02.02.02.01",
+                          "description": "Создание таблицы, индексов, ограничений",
+                          "validationCriteria": "Структура создана корректно"
+                        },
+                        "substages": []
+                      },
+                      {
+                        "displayName": "Перенос данных. № 02.02.02.02",
+                        "attributes": {
+                          "id": "02.02.02.02",
+                          "description": "Копирование данных из MS SQL в PostgreSQL",
+                          "validationCriteria": "Данные перенесены без потерь"
+                        },
+                        "substages": []
+                      },
+                      {
+                        "displayName": "Создание внешних ключей. № 02.02.02.03",
+                        "attributes": {
+                          "id": "02.02.02.03",
+                          "description": "Создание внешних ключей после переноса данных",
+                          "validationCriteria": "Все внешние ключи созданы"
+                        },
+                        "substages": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "displayName": "Этап 2: Создание иных объектов БД. № 03",
+            "attributes": {
+              "id": "03",
+              "description": "Создание представлений, процедур, функций, типов, последовательностей",
+              "predecessors": ["02"],
+              "validationCriteria": "Все объекты БД созданы и работают"
+            },
+            "substages": [
+              {
+                "displayName": "Создание пользовательских типов. № 03.01",
+                "attributes": {
+                  "id": "03.01",
+                  "description": "Создание пользовательских типов данных",
+                  "validationCriteria": "Все типы созданы"
+                },
+                "substages": []
+              },
+              {
+                "displayName": "Создание последовательностей. № 03.02",
+                "attributes": {
+                  "id": "03.02",
+                  "description": "Создание последовательностей для генерации значений",
+                  "validationCriteria": "Все последовательности созданы"
+                },
+                "substages": []
+              },
+              {
+                "displayName": "Создание функций. № 03.03",
+                "attributes": {
+                  "id": "03.03",
+                  "description": "Создание табличных и скалярных функций",
+                  "validationCriteria": "Все функции созданы и протестированы"
+                },
+                "substages": []
+              },
+              {
+                "displayName": "Создание хранимых процедур. № 03.04",
+                "attributes": {
+                  "id": "03.04",
+                  "description": "Создание хранимых процедур для бизнес-логики",
+                  "validationCriteria": "Все процедуры созданы и протестированы"
+                },
+                "substages": []
+              },
+              {
+                "displayName": "Создание представлений. № 03.05",
+                "attributes": {
+                  "id": "03.05",
+                  "description": "Создание представлений для упрощения доступа к данным",
+                  "validationCriteria": "Все представления созданы"
+                },
+                "substages": []
+              }
+            ]
+          },
+          {
+            "displayName": "Валидация и тестирование. № 04",
+            "attributes": {
+              "id": "04",
+              "description": "Проверка корректности миграции и тестирование функциональности",
+              "predecessors": ["03"],
+              "validationCriteria": "Все критерии успеха выполнены"
+            },
+            "substages": [
+              {
+                "displayName": "Проверка целостности данных. № 04.01",
+                "attributes": {
+                  "id": "04.01",
+                  "description": "Валидация перенесенных данных",
+                  "validationCriteria": "100% данных перенесены корректно"
+                },
+                "substages": []
+              },
+              {
+                "displayName": "Тестирование производительности. № 04.02",
+                "attributes": {
+                  "id": "04.02",
+                  "description": "Проверка производительности запросов",
+                  "validationCriteria": "Производительность соответствует требованиям"
+                },
+                "substages": []
+              },
+              {
+                "displayName": "Функциональное тестирование. № 04.03",
+                "attributes": {
+                  "id": "04.03",
+                  "description": "Тестирование работы всех объектов БД",
+                  "validationCriteria": "Все функции работают корректно"
+                },
+                "substages": []
+              }
+            ]
+          }
+        ]
+      },
+      "modules": {
+        "tableListManager": "Управление списком таблиц",
+        "dependencyAnalyzer": "Анализ зависимостей",
+        "structureCreator": "Создание структуры таблицы",
+        "dataMigrator": "Перенос данных",
+        "foreignKeyCreator": "Создание внешних ключей"
+      }
+    },
+    "technology": {
+      "sourceDB": "MS SQL Server",
+      "targetDB": "PostgreSQL",
+      "programmingLanguage": "Python 3.11+",
+      "frameworks": ["SQLAlchemy", "psycopg2"],
+      "tools": ["Desktop Commander", "DBHub"],
+      "aiIntegration": "Правила AI в src/ai-rules/"
+    },
+    "database": {
+      "source": {
+        "name": "Fish_Eye",
+        "tables": 166,
+        "schemas": ["ags", "mcl"]
+      },
+      "target": {
+        "name": "fish_eye",
+        "schemas": ["ags", "mcl", "public"]
+      },
+      "controlSchema": {
+        "name": "mcl",
+        "tables": [
+          "mssql_tables",
+          "mssql_columns", 
+          "mssql_indexes",
+          "postgres_tables",
+          "postgres_columns",
+          "postgres_indexes",
+          "migration_log"
+        ]
+      }
+    },
+    "developmentObjects": {
+      "codebase": {
+        "location": "src/",
+        "classes": "src/classes/",
+        "scripts": "src/scripts/",
+        "config": "src/config/"
+      },
+      "aiRules": {
+        "location": "src/ai-rules/",
+        "mainFile": "ai-rules.json",
+        "categories": [
+          "migration",
+          "analysis", 
+          "transformation",
+          "validation",
+          "stages"
+        ],
+        "developmentStatus": "in-development"
+      }
+    },
+    "migration": {
+      "currentTask": {
+        "id": 2,
+        "name": "Fish_Eye Migration",
+        "status": "in-progress",
+        "progress": {
+          "stage1_1": "completed",
+          "stage1_2": "in-progress",
+          "stage2": "pending"
+        },
+        "tables": {
+          "total": 166,
+          "completed": 2,
+          "inProgress": 0,
+          "pending": 164
+        }
+      },
+      "algorithm": {
+        "type": "BPMN",
+        "approach": "Итеративный с учетом зависимостей",
+        "sorting": "Алфавитная сортировка",
+        "dependencies": "Анализ внешних ключей"
+      }
+    },
+    "rules": {
+      "migration": {
+        "location": "docs-old/operations/rules/",
+        "categories": [
+          "general",
+          "single_table",
+          "function_mapping"
+        ],
+        "status": "implemented"
+      },
+      "aiRules": {
+        "location": "src/ai-rules/",
+        "status": "in-development"
+      }
+    },
+    "quality": {
+      "criteria": {
+        "fullSuccess": "100% таблиц, данных, внешних ключей",
+        "partialSuccess": "≥95% таблиц с планом доработки",
+        "failure": "Критические ошибки структуры или потери данных"
+      },
+      "metrics": {
+        "successRate": "Процент успешных операций",
+        "performance": "Время выполнения запросов",
+        "dataQuality": "Качество перенесенных данных"
+      }
+    },
+    "deployment": {
+      "environment": "Ubuntu 24.04",
+      "database": "PostgreSQL 16.x",
+      "python": "3.11+",
+      "dependencies": ["psycopg2-binary", "sqlalchemy", "pandas"]
+    },
+
+    "risks": {
+      "technical": [
+        "Несовместимость типов данных",
+        "Проблемы с вычисляемыми колонками",
+        "Циклические зависимости"
+      ],
+      "mitigation": [
+        "Система маппинга функций",
+        "Представления для вычисляемых колонок",
+        "Итеративный подход к зависимостям"
+      ]
+    },
+    "resources": {
+      "team": ["Александр"],
+      "tools": ["Desktop Commander", "DBHub", "PostgreSQL", "Python"],
+      "documentation": "docs/",
+      "reports": "docs-old/operations/reports/"
+    },
+    "TODO": {
+      "sectionsToComplete": [
+        "Детальные характеристики классов системы",
+        "Полная конфигурация базы данных",
+        "Детальные метрики качества",
+        "Процедуры развертывания",
+        "Планы тестирования"
+    ]
+      }
+    }
+  }

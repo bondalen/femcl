@@ -1,0 +1,44 @@
+{
+  "aiRules": {
+    "metadata": {
+      "version": "1.0.0",
+      "lastUpdated": "2025-10-06",
+      "description": "Правила работы AI при миграции БД",
+      "status": "in-development"
+    },
+    "stages": {
+      "location": "src/ai-rules/stages/",
+      "mainFile": "stages-rules.json",
+      "monitoringFile": "stages-monitoring.json",
+      "executionFile": "stage-execution-rules.md"
+    },
+    "categories": {
+      "migration": {
+        "location": "src/ai-rules/migration/",
+        "description": "Правила миграции данных и структуры"
+      },
+      "analysis": {
+        "location": "src/ai-rules/analysis/",
+        "description": "Правила анализа БД и зависимостей"
+      },
+      "transformation": {
+        "location": "src/ai-rules/transformation/",
+        "description": "Правила трансформации данных"
+      },
+      "validation": {
+        "location": "src/ai-rules/validation/",
+        "description": "Правила валидации результатов"
+      },
+      "stages": {
+        "location": "src/ai-rules/stages/",
+        "description": "Правила выполнения стадий миграции"
+      }
+    },
+    "integration": {
+      "projectDocs": "docs/project/project-docs.json",
+      "stagesSource": "project.architecture.stages.rootStages",
+      "monitoringSchema": "mcl.migration_log"
+    },
+    "developmentStatus": "in-development"
+  }
+}

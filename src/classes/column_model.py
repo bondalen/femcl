@@ -44,3 +44,18 @@ class ColumnModel:
         """Валидация колонки"""
         # TODO: Реализовать валидацию колонки
         return True
+    
+    def to_dict(self) -> dict:
+        """Преобразование в словарь для JSON"""
+        return {
+            'name': self.name,
+            'source_name': self.source_name,
+            'data_type': self.data_type,
+            'data_type_precision': self.data_type_precision,
+            'data_type_scale': self.data_type_scale,
+            'data_type_max_length': self.data_type_max_length,
+            'is_nullable': self.is_nullable,
+            'is_identity': self.is_identity,
+            'default_value': self.default_value,
+            'ordinal_position': self.ordinal_position
+        }

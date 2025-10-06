@@ -1,0 +1,19 @@
+{
+  "development": {
+    "metadata": {
+      "version": "1.0.0",
+      "status": "in-development",
+      "lastUpdated": "2025-10-06"
+    },
+    "numbering": {
+      "system": "extended",
+      "description": "01-99, 0a-0z, 1a-1z, ..., a0-zz",
+      "maxPerLevel": 1295
+    },
+    "rootTasks": [],
+    "links": {
+      "projectDocs": "../project/project-docs.json",
+      "journal": "../journal/project-journal.json"
+    }
+  }
+}

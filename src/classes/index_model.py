@@ -93,5 +93,20 @@ class IndexModel:
             return False
         return True
     
+    def to_dict(self) -> dict:
+        """Преобразование в словарь для JSON"""
+        return {
+            'name': self.name,
+            'table_name': self.table_name,
+            'index_type': self.index_type,
+            'is_unique': self.is_unique,
+            'is_primary_key': self.is_primary_key,
+            'fill_factor': self.fill_factor,
+            'columns': [col.to_dict() for col in self.columns],
+            'postgres_definition': self.postgres_definition,
+            'source_index_id': self.source_index_id,
+            'table_id': self.table_id
+        }
+    
     def __str__(self) -> str:
         return f"IndexModel(name={self.name}, table={self.table_name}, columns={len(self.columns)})"

@@ -1,0 +1,14 @@
+{
+  "journal": {
+    "metadata": {
+      "version": "1.0.0",
+      "status": "active",
+      "lastUpdated": "2025-10-06"
+    },
+    "sessions": [],
+    "links": {
+      "projectDocs": "../project/project-docs.json",
+      "development": "../development/project-development.json"
+    }
+  }
+}

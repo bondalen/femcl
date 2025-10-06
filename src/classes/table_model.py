@@ -1,14 +1,15 @@
 """
-TableModel - Базовый класс для модели таблицы
+TableModel - Абстрактный базовый класс для модели таблицы
 Содержит общие свойства и методы для всех типов таблиц
 """
 
 from typing import List, Optional
 from datetime import datetime
+from abc import ABC, abstractmethod
 
 
-class TableModel:
-    """Базовый класс для модели переносимой таблицы"""
+class TableModel(ABC):
+    """Абстрактный базовый класс для модели переносимой таблицы"""
     
     def __init__(self, source_table_name: str):
         self.source_table_name = source_table_name
@@ -29,6 +30,16 @@ class TableModel:
     def load_metadata(self, config_loader) -> bool:
         """Загрузка всех метаданных таблицы"""
         try:
+            # Сначала проверяем существование исходной таблицы
+            if not self.check_source_exists(config_loader):
+                self.log_error(f"Исходная таблица {self.source_table_name} не найдена в MS SQL Server")
+                return False
+            
+            # Загружаем количество строк из исходной таблицы
+            self.load_source_row_count(config_loader)
+            
+            # Загружаем метаданные из PostgreSQL
+            self.load_target_table_names(config_loader)
             self.load_columns(config_loader)
             self.load_indexes(config_loader)
             self.load_foreign_keys()
@@ -39,10 +50,126 @@ class TableModel:
             self.log_error(f"Ошибка загрузки метаданных: {e}")
             return False
     
-    def check_source_exists(self) -> bool:
+    def check_source_exists(self, config_loader) -> bool:
         """Проверка существования в MS SQL"""
-        # TODO: Реализовать проверку существования таблицы в MS SQL
-        return True
+        try:
+            import pyodbc
+            
+            # Получаем конфигурацию MS SQL
+            mssql_config = config_loader.get_database_config('mssql')
+            
+            # Создаем подключение
+            connection_string = (
+                f"DRIVER={{{mssql_config['driver']}}};"
+                f"SERVER={mssql_config['server']},{mssql_config['port']};"
+                f"DATABASE={mssql_config['database']};"
+                f"UID={mssql_config['user']};"
+                f"PWD={mssql_config['password']};"
+                "TrustServerCertificate=yes;"
+            )
+            
+            conn = pyodbc.connect(connection_string)
+            cursor = conn.cursor()
+            
+            # Проверяем существование таблицы
+            cursor.execute("""
+                SELECT COUNT(*) 
+                FROM information_schema.tables 
+                WHERE table_name = ? AND table_schema = 'ags'
+            """, (self.source_table_name,))
+            
+            count = cursor.fetchone()[0]
+            
+            cursor.close()
+            conn.close()
+            
+            self.source_exists = count > 0
+            return self.source_exists
+            
+        except Exception as e:
+            self.log_error(f"Ошибка проверки существования таблицы: {e}")
+            self.source_exists = False
+            return False
+    
+    def load_source_row_count(self, config_loader) -> None:
+        """Загрузка количества строк из исходной таблицы в MS SQL"""
+        try:
+            import pyodbc
+            
+            # Получаем конфигурацию MS SQL
+            mssql_config = config_loader.get_database_config('mssql')
+            
+            # Создаем подключение
+            connection_string = (
+                f"DRIVER={{{mssql_config['driver']}}};"
+                f"SERVER={mssql_config['server']},{mssql_config['port']};"
+                f"DATABASE={mssql_config['database']};"
+                f"UID={mssql_config['user']};"
+                f"PWD={mssql_config['password']};"
+                "TrustServerCertificate=yes;"
+            )
+            
+            conn = pyodbc.connect(connection_string)
+            cursor = conn.cursor()
+            
+            # Получаем количество строк
+            cursor.execute(f"SELECT COUNT(*) FROM ags.{self.source_table_name}")
+            
+            count = cursor.fetchone()[0]
+            self.source_row_count = count
+            
+            cursor.close()
+            conn.close()
+            
+        except Exception as e:
+            self.log_error(f"Ошибка загрузки количества строк: {e}")
+            self.source_row_count = 0
+    
+    def load_target_table_names(self, config_loader) -> None:
+        """Загрузка имен целевых таблиц из метаданных"""
+        try:
+            import psycopg2
+            
+            # Получаем конфигурацию PostgreSQL
+            postgres_config = config_loader.get_database_config('postgres')
+            
+            # Создаем подключение
+            conn = psycopg2.connect(
+                host=postgres_config['host'],
+                port=postgres_config['port'],
+                dbname=postgres_config['database'],
+                user=postgres_config['user'],
+                password=postgres_config['password']
+            )
+            cursor = conn.cursor()
+            
+            # Получаем имена целевых таблиц
+            cursor.execute("""
+                SELECT pt.base_table_name, pt.view_name
+                FROM mcl.postgres_tables pt
+                JOIN mcl.mssql_tables mt ON pt.source_table_id = mt.id
+                WHERE mt.object_name = %s AND mt.task_id = 2
+            """, (self.source_table_name,))
+            
+            result = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            
+            if result:
+                base_table_name, view_name = result
+                # Устанавливаем имена в зависимости от типа модели
+                if hasattr(self, 'target_table_name'):
+                    # RegularTableModel
+                    self.target_table_name = base_table_name
+                elif hasattr(self, 'target_base_table_name'):
+                    # BaseTableModel
+                    self.target_base_table_name = base_table_name
+                    # TODO: Установить view_name в view_reference
+            else:
+                self.log_error(f"Не найдены имена целевых таблиц для {self.source_table_name}")
+            
+        except Exception as e:
+            self.log_error(f"Ошибка загрузки имен целевых таблиц: {e}")
     
     def validate_metadata(self) -> bool:
         """Валидация загруженных метаданных"""
@@ -107,12 +234,17 @@ class TableModel:
                     pc.ordinal_position,
                     pdt.precision_value,
                     pdt.scale_value,
-                    pdt.length_value
+                    pdt.length_value,
+                    pc.is_computed,
+                    pc.target_type,
+                    pc.computed_definition,
+                    pc.postgres_computed_definition
                 FROM mcl.postgres_columns pc
                 JOIN mcl.postgres_tables pt ON pc.table_id = pt.id
                 JOIN mcl.postgres_derived_types pdt ON pc.postgres_data_type_id = pdt.id
                 JOIN mcl.mssql_columns mc ON pc.source_column_id = mc.id
-                WHERE pt.object_name = %s
+                JOIN mcl.mssql_tables mt ON pt.source_table_id = mt.id
+                WHERE mt.object_name = %s
                 ORDER BY pc.ordinal_position
             """, (self.source_table_name,))
             
@@ -122,7 +254,7 @@ class TableModel:
             
             # Создаем экземпляры ColumnModel
             self.columns = []
-            for target_name, source_name, data_type, is_identity, ordinal, precision, scale, length in columns_data:
+            for target_name, source_name, data_type, is_identity, ordinal, precision, scale, length, is_computed, target_type, computed_definition, postgres_computed_definition in columns_data:
                 column = ColumnModel(
                     name=target_name,
                     source_name=source_name,
@@ -134,6 +266,12 @@ class TableModel:
                 column.data_type_scale = scale
                 column.data_type_max_length = length
                 column.is_nullable = not is_identity  # Identity колонки обычно NOT NULL
+                
+                # Добавляем атрибуты для вычисляемых колонок
+                column.is_computed = is_computed
+                column.target_type = target_type
+                column.computed_definition = computed_definition
+                column.postgres_computed_definition = postgres_computed_definition
                 
                 self.columns.append(column)
             
@@ -266,12 +404,44 @@ class TableModel:
         # TODO: Реализовать загрузку триггеров из mcl.postgres_triggers
         pass
     
+    @abstractmethod
     def generate_table_ddl(self) -> str:
         """Генерация DDL для создания таблицы"""
-        # TODO: Реализовать генерацию DDL
-        return ""
+        pass
     
+    @abstractmethod
     def generate_indexes_ddl(self) -> List[str]:
         """Генерация DDL для индексов"""
-        # TODO: Реализовать генерацию DDL для индексов
-        return []
+        pass
+    
+    @abstractmethod
+    def migrate_data(self) -> bool:
+        """Миграция данных таблицы"""
+        pass
+    
+    def to_dict(self) -> dict:
+        """Преобразование в словарь для JSON"""
+        return {
+            'source_table_name': self.source_table_name,
+            'migration_status': self.migration_status,
+            'source_exists': self.source_exists,
+            'source_row_count': self.source_row_count,
+            'migration_duration': self.migration_duration,
+            'errors': self.errors,
+            'columns_count': len(self.columns),
+            'indexes_count': len(self.indexes),
+            'foreign_keys_count': len(self.foreign_keys),
+            'unique_constraints_count': len(self.unique_constraints),
+            'check_constraints_count': len(self.check_constraints),
+            'triggers_count': len(self.triggers)
+        }
+    
+    @staticmethod
+    def create_table_model(source_table_name: str, has_computed_columns: bool) -> 'TableModel':
+        """Фабричный метод для создания правильного типа модели"""
+        if has_computed_columns:
+            from .base_table_model import BaseTableModel
+            return BaseTableModel(source_table_name)
+        else:
+            from .regular_table_model import RegularTableModel
+            return RegularTableModel(source_table_name)

@@ -56,14 +56,15 @@ package "FEMCL Migration Classes" {
         - view_name: str
         - base_table_name: str
         - computed_columns: List~ComputedColumnModel~
-        - function_mappings: List~FunctionMappingModel~
         - view_definition: str
+        - base_table_model: BaseTableModel
         
         + load_computed_columns()
         + load_function_mappings()
         + generate_view_ddl()
         + validate_functions()
         + map_mssql_to_postgres_functions()
+        + set_base_table_model()
     }
     
     class ComputedColumnModel {
@@ -72,25 +73,62 @@ package "FEMCL Migration Classes" {
         - target_expression: str
         - data_type: str
         - is_mapped: bool
-        - function_mapping: FunctionMappingModel
+        - function_mapping: FunctionMappingState
         - mapping_status: str
+        - computed_mapping_confidence: int
+        - computed_mapping_attempts: int
+        - computed_mapping_notes: str
         
         + get_ddl_definition()
         + validate()
+        + analyze_function_state()
+        + load_function_mapping()
         + map_function()
         + get_mapping_status()
+        + to_dict()
+    }
+    
+    class FunctionMappingState {
+        - status: str
+        - complexity: str
+        - functions: List~str~
+        - next_action: str
+        - confidence: int
+        - notes: str
+        - requires_manual_review: bool
+        - function_mapping_model: FunctionMappingModel
+        
+        + to_dict()
+        + get_status()
+        + get_complexity()
+        + get_next_action()
+        + is_manual_review_required()
+        + check_metadata_mapping()
+        + validate_mapping_result()
+        + create_with_mapping_model()
+        + create_without_mapping_model()
     }
     
     class FunctionMappingModel {
+        - id: int
         - source_function: str
         - target_function: str
+        - mapping_pattern: str
+        - replacement_pattern: str
         - mapping_type: str
+        - complexity_level: int
+        - applicable_objects: List~str~
+        - description: str
+        - examples: List~str~
+        - is_active: bool
         - is_automatic: bool
         - is_semi_automatic: bool
         - is_manual: bool
         
         + get_mapping()
         + validate_mapping()
+        + map_function()
+        + to_dict()
     }
     
     class ColumnModel {
@@ -163,18 +201,23 @@ package "FEMCL Migration Classes" {
         - pg_config: dict
         - mssql_conn: Connection
         - pg_conn: Connection
+        - table_name: str
+        - verbose: bool
         
         + get_mssql_connection()
         + get_pg_connection()
-        + create_table()
+        + get_table_metadata()
+        + create_target_table()
         + create_indexes()
         + create_foreign_keys()
         + create_constraints()
         + create_triggers()
-        + migrate_data()
+        + migrate_table_data()
         + validate_migration()
         + migrate_table()
+        + _check_has_computed_columns()
     }
+    
 }
 
 ' Inheritance relationships
@@ -184,8 +227,8 @@ TableModel <|-- BaseTableModel
 ' Composition relationships
 BaseTableModel ||--o{ ViewModel
 ViewModel ||--o{ ComputedColumnModel
-ViewModel ||--o{ FunctionMappingModel
-ComputedColumnModel ||--o{ FunctionMappingModel
+ComputedColumnModel ||--o{ FunctionMappingState
+FunctionMappingState ||--o{ FunctionMappingModel
 
 ' TableModel содержит все общие элементы
 TableModel ||--o{ ColumnModel

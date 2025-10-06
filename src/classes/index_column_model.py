@@ -18,6 +18,15 @@ class IndexColumnModel:
         self.column_id: Optional[int] = None
         self.index_id: Optional[int] = None
     
+    def to_dict(self) -> dict:
+        """Преобразование в словарь для JSON"""
+        return {
+            'index_name': self.index_name,
+            'column_name': self.column_name,
+            'ordinal_position': self.ordinal_position,
+            'is_descending': self.is_descending
+        }
+    
     def __str__(self) -> str:
         direction = "DESC" if self.is_descending else "ASC"
         return f"IndexColumnModel({self.column_name} {direction}, pos={self.ordinal_position})"

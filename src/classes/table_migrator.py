@@ -287,8 +287,11 @@ class TableMigrator:
         try:
             from src.classes.table_model import TableModel
             
-            # Создаем экземпляр модели таблицы
-            table_model = TableModel(self.table_name)
+            # Получаем информацию о наличии вычисляемых колонок
+            has_computed_columns = self._check_has_computed_columns()
+            
+            # Создаем экземпляр модели таблицы через фабричный метод
+            table_model = TableModel.create_table_model(self.table_name, has_computed_columns)
             
             # Загружаем метаданные
             if not table_model.load_metadata(self.config_loader):
@@ -305,13 +308,48 @@ class TableMigrator:
                 'table_name': self.table_name,
                 'table_model': table_model,
                 'source_columns': source_columns,
-                'target_columns': target_columns
+                'target_columns': target_columns,
+                'has_computed_columns': has_computed_columns
             }
             
         except Exception as e:
             if self.verbose:
                 print(f"❌ Ошибка получения метаданных: {e}")
             return None
+    
+    def _check_has_computed_columns(self) -> bool:
+        """Проверка наличия вычисляемых колонок в таблице"""
+        try:
+            import psycopg2
+            
+            # Подключение к PostgreSQL
+            conn = psycopg2.connect(
+                host=self.pg_config['host'],
+                port=self.pg_config['port'],
+                dbname=self.pg_config['database'],
+                user=self.pg_config['user'],
+                password=self.pg_config['password']
+            )
+            cursor = conn.cursor()
+            
+            # Проверяем наличие вычисляемых колонок
+            cursor.execute("""
+                SELECT pt.has_computed_columns
+                FROM mcl.postgres_tables pt
+                JOIN mcl.mssql_tables mt ON pt.source_table_id = mt.id
+                WHERE pt.object_name = %s AND mt.task_id = 2
+            """, (self.table_name,))
+            
+            result = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            
+            return result[0] if result else False
+            
+        except Exception as e:
+            if self.verbose:
+                print(f"❌ Ошибка проверки вычисляемых колонок: {e}")
+            return False
     
     def create_target_table(self, metadata: Dict) -> bool:
         """Создание целевой таблицы"""
