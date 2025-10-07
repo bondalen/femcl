@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 FEMCL - Менеджер миграции таблиц
-Версия: 1.0
-Автор: FEMCL Team
-Дата: 2025-01-27
+
+ОБНОВЛЕНО: Использует ConnectionManager
+Версия: 2.0
+Дата обновления: 2025-10-07
 
 Описание:
     Менеджер для управления миграцией таблиц с возможностью
@@ -24,46 +25,60 @@ FEMCL - Менеджер миграции таблиц
 import os
 import sys
 import argparse
-import psycopg2
 from datetime import datetime
-from dotenv import load_dotenv
+from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich import print as rprint
 
-# Добавляем корневую директорию проекта в sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Добавляем путь к модулям проекта
+sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "code"))
 
-from config.config_loader import ConfigLoader
+from infrastructure.classes import ConnectionManager, ConnectionDiagnostics
 
-load_dotenv()
 console = Console()
 
 class MigrationManager:
-    """Менеджер миграции таблиц"""
+    """
+    Менеджер миграции таблиц.
     
-    def __init__(self, config):
-        self.config = config
-        self.pg_conn_str = self._get_pg_conn_str()
+    ОБНОВЛЕНО: Использует ConnectionManager для подключений к БД.
+    """
     
-    def _get_pg_conn_str(self):
-        """Получение строки подключения к PostgreSQL"""
-        db_config = self.config.get_database_config('postgresql')
-        return (
-            f"host={db_config['host']} port={db_config['port']} "
-            f"dbname={db_config['database']} user={db_config['user']} "
-            f"password={db_config['password']}"
-        )
+    def __init__(self, connection_manager: ConnectionManager):
+        """
+        Инициализация MigrationManager.
+        
+        Args:
+            connection_manager: Экземпляр ConnectionManager
+        """
+        self.conn_mgr = connection_manager
+        self.task_id = connection_manager.task_id
     
     def _execute_pg_query(self, query, params=None, fetch_one=False):
-        """Выполнение запроса к PostgreSQL"""
-        with psycopg2.connect(self.pg_conn_str) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                if fetch_one:
-                    return cursor.fetchone()
-                return cursor.fetchall()
+        """
+        Выполнение запроса к PostgreSQL.
+        
+        Args:
+            query: SQL запрос
+            params: Параметры запроса
+            fetch_one: Вернуть одну строку (True) или все (False)
+        
+        Returns:
+            Результат запроса
+        """
+        conn = self.conn_mgr.get_postgres_connection()
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        
+        if fetch_one:
+            result = cursor.fetchone()
+        else:
+            result = cursor.fetchall()
+        
+        cursor.close()
+        return result
     
     def list_tables(self, task_id=2, status='pending'):
         """Список таблиц для миграции"""
@@ -298,27 +313,42 @@ def main():
     
     args = parser.parse_args()
     
-    # Загрузка конфигурации
-    config_loader = ConfigLoader()
-    config = config_loader.load_config()
+    try:
+        # Инициализация ConnectionManager
+        conn_manager = ConnectionManager(task_id=args.task_id)
+        
+        # Информация о профиле
+        info = conn_manager.get_connection_info()
+        console.print(f"[green]✅ Профиль: {info['profile_name']} (task_id={info['task_id']})[/green]\n")
+        
+        # Создание менеджера миграции
+        manager = MigrationManager(conn_manager)
+        
+        # Выполнение команды
+        if args.command == 'list':
+            manager.list_tables(args.task_id, args.status)
+        elif args.command == 'status':
+            manager.get_migration_status(args.task_id)
+        elif args.command == 'validate':
+            if not args.table:
+                rprint("[red]❌ Необходимо указать имя таблицы с --table[/red]")
+                sys.exit(1)
+            manager.validate_table(args.table)
+        elif args.command == 'report':
+            manager.generate_report(args.task_id)
+        else:
+            rprint(f"[yellow]⚠️ Команда '{args.command}' пока не реализована[/yellow]")
     
-    # Создание менеджера
-    manager = MigrationManager(config)
-    
-    # Выполнение команды
-    if args.command == 'list':
-        manager.list_tables(args.task_id, args.status)
-    elif args.command == 'status':
-        manager.get_migration_status(args.task_id)
-    elif args.command == 'validate':
-        if not args.table:
-            rprint("[red]❌ Необходимо указать имя таблицы с --table[/red]")
-            sys.exit(1)
-        manager.validate_table(args.table)
-    elif args.command == 'report':
-        manager.generate_report(args.task_id)
-    else:
-        rprint(f"[yellow]⚠️ Команда '{args.command}' пока не реализована[/yellow]")
+    except ValueError as e:
+        console.print(f"[red]❌ Ошибка инициализации: {e}[/red]")
+        console.print("[yellow]💡 Проверьте connections.json[/yellow]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]❌ Критическая ошибка: {e}[/red]")
+        sys.exit(1)
+    finally:
+        if 'conn_manager' in locals():
+            conn_manager.close_all_connections()
 
 if __name__ == "__main__":
     main()

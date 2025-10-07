@@ -112,6 +112,310 @@
             }
           ]
         }
+      },
+      {
+        "chat": {
+          "displayName": "Единая точка подключения (completed, high). № chat-2025-10-07-001",
+          "chat-attributes": {
+            "id": "chat-2025-10-07-001",
+            "name": "Единая точка подключения",
+            "created": "2025-10-07",
+            "lastUpdated": "2025-10-07",
+            "owner": "Александр",
+            "tags": ["documentation", "infrastructure", "connections", "rules", "ConnectionManager"],
+            "links": {
+              "projectDocsRefs": [
+                "project.resources.documentation.infrastructure",
+                "project.architecture.modules.list[3].components[0]",
+                "project.architecture.modules.list[3].components[4]"
+              ],
+              "developmentTasks": ["01.01.09"],
+              "aiRuleRefs": []
+            }
+          },
+          "entries": [
+            {
+              "log": {
+                "displayName": "Создание database-connections-rules.md и связанных файлов (completed). № log-2025-10-07-001",
+                "log-attributes": {
+                  "id": "log-2025-10-07-001",
+                  "timestamp": "2025-10-07T00:00:00Z",
+                  "level": "info",
+                  "effort": "2h",
+                  "status": "completed",
+                  "links": {
+                    "projectDocsRefs": ["project.resources.documentation.infrastructure"],
+                    "developmentTasks": ["01.01.09"],
+                    "aiRuleRefs": []
+                  }
+                },
+                "entries": [
+                  {
+                    "action": "Создание папки docs/infrastructure/",
+                    "details": "Создана новая папка для хранения инфраструктурной документации",
+                    "references": ["docs/infrastructure/"]
+                  },
+                  {
+                    "action": "Создание docs/infrastructure/database-connections-rules.md",
+                    "details": "Создан полный файл с детальными правилами работы с подключениями к БД (принципы, архитектура, использование ConnectionManager, FAQ). Файл содержит ~560 строк документации для обоих режимов работы (разработка + эксплуатация)",
+                    "references": ["docs/infrastructure/database-connections-rules.md"]
+                  },
+                  {
+                    "action": "Обновление .cursorrules",
+                    "details": "Добавлен раздел 'Подключения к базам данных' (3 строки) со ссылкой на database-connections-rules.md. Минимизация размера файла достигнута",
+                    "references": [".cursorrules"]
+                  },
+                  {
+                    "action": "Обновление docs/project-documentation-rules.md",
+                    "details": "Обновлен раздел 'При работе с базами данных' - добавлена ссылка на database-connections-rules.md, обязательность использования ConnectionManager, источник connections.json (task_id=2 по умолчанию)",
+                    "references": ["docs/project-documentation-rules.md#при-работе-с-базами-данных"]
+                  },
+                  {
+                    "action": "Создание src/code/infrastructure/config/README.md",
+                    "details": "Создан файл с описанием конфигурационных файлов: connections.json (профили подключений), config.yaml (настройки миграции), connections.example.json (шаблон). Указаны правила безопасности и использования",
+                    "references": ["src/code/infrastructure/config/README.md"]
+                  },
+                  {
+                    "action": "Документирование в project-docs.json",
+                    "details": "Добавлен раздел infrastructure в resources.documentation с информацией о новой папке docs/infrastructure/ и файле database-connections-rules.md",
+                    "references": ["docs/project/project-docs.json#project.resources.documentation.infrastructure"]
+                  },
+                  {
+                    "action": "Создание задачи в project-development.json",
+                    "details": "Добавлена задача 01.01.09 'Документация правил подключений к БД' со статусом completed в раздел модуля инфраструктуры. Указаны predecessors и ссылки на projectDocsRefs и journalRefs",
+                    "references": ["docs/development/project-development.json#01.01.09"]
+                  }
+                ]
+              }
+            },
+            {
+              "log": {
+                "displayName": "Реализация ConnectionManager и ConnectionDiagnostics (completed). № log-2025-10-07-002",
+                "log-attributes": {
+                  "id": "log-2025-10-07-002",
+                  "timestamp": "2025-10-07T00:00:00Z",
+                  "level": "info",
+                  "effort": "3h",
+                  "status": "completed",
+                  "links": {
+                    "projectDocsRefs": ["project.architecture.modules.list[3].components[0]"],
+                    "developmentTasks": ["01.01.01"],
+                    "aiRuleRefs": []
+                  }
+                },
+                "entries": [
+                  {
+                    "action": "Реализация класса ConnectionManager",
+                    "details": "Создан полнофункциональный класс ConnectionManager (390 строк) с поддержкой: загрузки профилей из connections.json, task_id=2 по умолчанию, управления подключениями к обеим БД, context manager, переключения между задачами",
+                    "references": ["src/code/infrastructure/classes/connection_manager.py"]
+                  },
+                  {
+                    "action": "Создание класса ConnectionDiagnostics",
+                    "details": "Создан класс ConnectionDiagnostics (670+ строк) для диагностики состояния БД: тестирование подключений, получение версий, проверка схем, валидация метаданных, генерация отчетов с Rich форматированием",
+                    "references": ["src/code/infrastructure/classes/connection_diagnostics.py"]
+                  },
+                  {
+                    "action": "Обновление __init__.py для экспорта классов",
+                    "details": "Обновлен файл __init__.py с экспортом ConnectionManager, ConnectionDiagnostics и других классов инфраструктуры",
+                    "references": ["src/code/infrastructure/classes/__init__.py"]
+                  },
+                  {
+                    "action": "Создание тестового скрипта test_connection_manager.py",
+                    "details": "Создан комплексный тестовый скрипт с 6 тестами для проверки работы ConnectionManager и ConnectionDiagnostics. Тесты включают: инициализацию, подключения к обеим БД, диагностику, отчеты, context manager",
+                    "references": ["test_connection_manager.py"]
+                  },
+                  {
+                    "action": "Успешное тестирование реализации",
+                    "details": "Все 6 тестов пройдены успешно: подключения к PostgreSQL (v17.6) и MS SQL Server (2022 RTM-CU21) работают, схема mcl найдена (77 таблиц), метаданные валидны (2 задачи, 167 MS SQL таблиц, 166 PostgreSQL таблиц)",
+                    "references": ["test_connection_manager.py#результаты"]
+                  }
+                ]
+              }
+            },
+            {
+              "log": {
+                "displayName": "Очистка проекта и рефакторинг на ConnectionManager (completed). № log-2025-10-07-003",
+                "log-attributes": {
+                  "id": "log-2025-10-07-003",
+                  "timestamp": "2025-10-07T00:00:00Z",
+                  "level": "info",
+                  "effort": "4h",
+                  "status": "completed",
+                  "links": {
+                    "projectDocsRefs": ["project.architecture.modules.list[3].components[0]"],
+                    "developmentTasks": ["01.01.01"],
+                    "aiRuleRefs": []
+                  }
+                },
+                "entries": [
+                  {
+                    "action": "Удаление устаревших тестовых скриптов из корня проекта",
+                    "details": "Удалено 17 файлов из корня проекта: add_table_id_direct.py, analyze_*.py, check_*.py, debug_*.py, find_*.py, fix_*.py, test_*.py, quick_check.py, verify_*.py. Все это были временные тестовые/отладочные скрипты или разовые задачи, которые уже выполнены",
+                    "references": ["REFACTORING_PLAN.md"]
+                  },
+                  {
+                    "action": "Удаление устаревших скриптов из scripts/",
+                    "details": "Удалено 6 файлов из scripts/: analyze_first_iteration*.py, complete_migrate*.py, migrate_first_table*.py, migrate_second_table*.py, simple_migrate.py, quick_migrate.py, transfer_data_simple.py, test_updated_rules.py, check_cnInvCmmAgN.py, migrate_cnInvCmmAgN.py, migrate_accnt.py, validate_accnt_table.py. Все старые итерации разработки заменены модулями",
+                    "references": ["REFACTORING_PLAN.md"]
+                  },
+                  {
+                    "action": "Удаление скриптов database/",
+                    "details": "Удалено 3 файла из scripts/database/: test_connection.py, test_mssql_connection.py, check_mssql_databases.py. Функционал заменен на ConnectionDiagnostics",
+                    "references": ["src/code/infrastructure/classes/connection_diagnostics.py"]
+                  },
+                  {
+                    "action": "Очистка temp/",
+                    "details": "Удалено 4 файла из temp/: transfer_data_*.py (cn, pandas, sqlalchemy), get-pip.py. Временные экспериментальные файлы больше не нужны",
+                    "references": ["REFACTORING_PLAN.md"]
+                  },
+                  {
+                    "action": "Создание плана рефакторинга",
+                    "details": "Создан файл REFACTORING_PLAN.md с полным списком скриптов для рефакторинга, категоризацией (критичные, референсные, тестовые) и планом действий",
+                    "references": ["REFACTORING_PLAN.md"]
+                  },
+                  {
+                    "action": "Рефакторинг критичных скриптов на ConnectionManager",
+                    "details": "Отрефакторено 4 критичных скрипта: check_connections_and_tables.py (335→168 строк), check_mcl_schema.py (102→145 строк), reset_migration_status.py (142→161 строк), migrate_cn.py (обновлена функция подключения). Все теперь используют ConnectionManager и ConnectionDiagnostics",
+                    "references": [
+                      "scripts/check_connections_and_tables.py",
+                      "scripts/check_mcl_schema.py",
+                      "scripts/reset_migration_status.py",
+                      "scripts/migrate_cn.py"
+                    ]
+                  },
+                  {
+                    "action": "Удаление тестовых скриптов из scripts/migration/",
+                    "details": "Удалено 9 тестовых файлов: real_data_migration*.py (3 версии), test_data_migration.py, test_three_tables*.py (2 файла), test_dependency_analyzer.py, test_migration_coordinator.py, test_monitoring_reporter.py, test_table_list_manager.py. Все тестовые версии удалены, оставлены только production-ready скрипты",
+                    "references": ["REFACTORING_PLAN.md"]
+                  },
+                  {
+                    "action": "Рефакторинг модулей миграции на ConnectionManager",
+                    "details": "Отрефакторено 4 ключевых модуля миграции: migration_manager.py (обновлен класс MigrationManager), dependency_analyzer.py (класс DependencyAnalyzer), table_list_manager.py (класс TableListManager), monitoring_reporter.py (класс MigrationMonitor). Все классы теперь принимают ConnectionManager в конструкторе вместо config_path",
+                    "references": [
+                      "scripts/migration_manager.py",
+                      "scripts/migration/dependency_analyzer.py",
+                      "scripts/migration/table_list_manager.py",
+                      "scripts/migration/monitoring_reporter.py"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "log": {
+                "displayName": "Создание структуры тестов pytest (completed). № log-2025-10-07-004",
+                "log-attributes": {
+                  "id": "log-2025-10-07-004",
+                  "timestamp": "2025-10-07T00:00:00Z",
+                  "level": "info",
+                  "effort": "1h",
+                  "status": "completed",
+                  "links": {
+                    "projectDocsRefs": ["project.resources.codebase.tests"],
+                    "developmentTasks": [],
+                    "aiRuleRefs": []
+                  }
+                },
+                "entries": [
+                  {
+                    "action": "Создание структуры папок tests/",
+                    "details": "Создана стандартная структура для pytest тестов: tests/unit/ (юнит-тесты), tests/integration/ (интеграционные тесты), tests/e2e/ (end-to-end тесты), tests/fixtures/ (тестовые данные). Добавлены подпапки для модулей: unit/infrastructure/, unit/migration/, unit/metadata/",
+                    "references": ["tests/"]
+                  },
+                  {
+                    "action": "Создание __init__.py файлов",
+                    "details": "Создано 8 __init__.py файлов для всех папок тестов с документацией назначения каждой папки",
+                    "references": [
+                      "tests/__init__.py",
+                      "tests/unit/__init__.py",
+                      "tests/unit/infrastructure/__init__.py",
+                      "tests/integration/__init__.py",
+                      "tests/e2e/__init__.py",
+                      "tests/fixtures/__init__.py"
+                    ]
+                  },
+                  {
+                    "action": "Перемещение test_connection_manager.py в правильное место",
+                    "details": "Тестовый файл перемещен из корня проекта в tests/integration/test_connection_manager.py. Теперь структура соответствует Python best practices",
+                    "references": ["tests/integration/test_connection_manager.py"]
+                  },
+                  {
+                    "action": "Создание conftest.py с общими fixtures",
+                    "details": "Создан файл pytest фикстур (103 строки) с fixtures для ConnectionManager (session и function scope), ConnectionDiagnostics, прямых подключений к PostgreSQL и MS SQL Server. Все фикстуры документированы с примерами использования",
+                    "references": ["tests/conftest.py"]
+                  },
+                  {
+                    "action": "Создание pytest.ini с настройками",
+                    "details": "Создан конфигурационный файл pytest с настройками путей, паттернов имен, опций запуска и маркеров тестов (unit, integration, e2e, slow, requires_mssql, requires_postgres)",
+                    "references": ["tests/pytest.ini"]
+                  },
+                  {
+                    "action": "Создание README.md для tests/",
+                    "details": "Создан подробный README (226 строк) с описанием структуры тестов, командами запуска, примерами использования fixtures и маркеров, инструкциями по отладке и покрытию кода",
+                    "references": ["tests/README.md"]
+                  },
+                  {
+                    "action": "Обновление .gitignore",
+                    "details": "Добавлен раздел 'Pytest и тестирование' с игнорированием .pytest_cache/, .coverage, htmlcov/, тестовых данных и временных файлов тестов",
+                    "references": [".gitignore"]
+                  },
+                  {
+                    "action": "Документирование в project-docs.json",
+                    "details": "Добавлен раздел tests в project.resources.codebase с описанием структуры тестов (unit/integration/e2e/fixtures), конфигурационных файлов (conftest.py, pytest.ini, README.md) и требований (pytest>=7.0, pytest-cov, pytest-mock)",
+                    "references": ["docs/project/project-docs.json#project.resources.codebase.tests"]
+                  }
+                ]
+              }
+            },
+            {
+              "log": {
+                "displayName": "Финальная очистка проекта и организация артефактов (completed). № log-2025-10-07-005",
+                "log-attributes": {
+                  "id": "log-2025-10-07-005",
+                  "timestamp": "2025-10-07T00:00:00Z",
+                  "level": "info",
+                  "effort": "30m",
+                  "status": "completed",
+                  "links": {
+                    "projectDocsRefs": ["project.resources.codebase"],
+                    "developmentTasks": [],
+                    "aiRuleRefs": []
+                  }
+                },
+                "entries": [
+                  {
+                    "action": "Удаление остаточных файлов из корня",
+                    "details": "Удалено 4 файла из корня проекта: 18 (пустой файл), backup_info_20251001_121540.txt (старая информация о бэкапе), add_table_id_step1.sql и add_table_id_to_indexes.sql (разовые SQL скрипты, задачи выполнены)",
+                    "references": []
+                  },
+                  {
+                    "action": "Создание database/sql/ для SQL скриптов",
+                    "details": "Создана папка database/sql/ для хранения служебных SQL скриптов. Перемещен create_index_view.sql из корня в database/sql/. Теперь все SQL скрипты организованы в подпапках",
+                    "references": ["database/sql/create_index_view.sql"]
+                  },
+                  {
+                    "action": "Перемещение документов разработки",
+                    "details": "Перемещен REFACTORING_PLAN.md из корня в docs/development/technical/. План рефакторинга теперь находится вместе с другими техническими документами разработки",
+                    "references": ["docs/development/technical/REFACTORING_PLAN.md"]
+                  },
+                  {
+                    "action": "Организация temp/ папки",
+                    "details": "Очистка temp/: fish_eye_backup.sql перемещен в database/backups/, FIRST_CHAT_REQUEST.md перемещен в docs/journal/notes/, migration.md удален (устаревшие правила от 25.09). В temp/ остались только README.md",
+                    "references": [
+                      "database/backups/fish_eye_backup.sql",
+                      "docs/journal/notes/FIRST_CHAT_REQUEST.md"
+                    ]
+                  },
+                  {
+                    "action": "Обновление project-docs.json - статус классов",
+                    "details": "Обновлен статус компонента connections с planned на implemented (v2.0), добавлен класс ConnectionDiagnostics с полным описанием, обновлен раздел codebase.scripts с категоризацией (testing, migration, diagnostics, management)",
+                    "references": ["docs/project/project-docs.json"]
+                  }
+                ]
+              }
+            }
+          ]
+        }
       }
     ],
     "links": {

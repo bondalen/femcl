@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
 """
 Модуль управления списком таблиц для миграции
+
+ОБНОВЛЕНО: Использует ConnectionManager
 """
 import os
 import sys
-import yaml
 import json
 import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Any
-import psycopg2
+from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.progress import Progress, TaskID
 
-# Добавляем путь к проекту
-sys.path.append('/home/alex/projects/sql/femcl')
+# Добавляем путь к модулям проекта
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src" / "code"))
+
+from infrastructure.classes import ConnectionManager
 
 console = Console()
 
@@ -31,51 +34,48 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class TableListManager:
-    """Класс для управления списком таблиц миграции"""
+    """
+    Класс для управления списком таблиц миграции.
     
-    def __init__(self, config_path="/home/alex/projects/sql/femcl/config/config.yaml"):
-        """Инициализация менеджера"""
-        self.config = self._load_config(config_path)
-        self.connection = None
+    ОБНОВЛЕНО: Использует ConnectionManager для подключений к БД.
+    """
+    
+    def __init__(self, connection_manager: ConnectionManager):
+        """
+        Инициализация менеджера.
+        
+        Args:
+            connection_manager: Экземпляр ConnectionManager
+        """
+        self.conn_mgr = connection_manager
+        self.task_id = connection_manager.task_id
         self._ensure_migration_table()
     
-    def _load_config(self, config_path):
-        """Загрузка конфигурации"""
-        with open(config_path, 'r', encoding='utf-8') as file:
-            return yaml.safe_load(file)
-    
-    def _get_connection(self):
-        """Получение подключения к PostgreSQL"""
-        if self.connection is None or self.connection.closed:
-            postgres_config = self.config['database']['postgres']
-            self.connection = psycopg2.connect(
-                host=postgres_config['host'],
-                port=postgres_config['port'],
-                dbname=postgres_config['database'],
-                user=postgres_config['user'],
-                password=postgres_config['password'],
-                connect_timeout=postgres_config['connection_timeout'],
-                sslmode=postgres_config['ssl_mode']
-            )
-        return self.connection
-    
     def _execute_query(self, query, params=None):
-        """Выполнение SQL запроса"""
-        conn = self._get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(query, params)
-            
-            if cursor.description:
-                columns = [desc[0] for desc in cursor.description]
-                rows = cursor.fetchall()
-                return [dict(zip(columns, row)) for row in rows]
-            else:
-                conn.commit()
-                return []
-        finally:
-            if cursor:
-                cursor.close()
+        """
+        Выполнение SQL запроса.
+        
+        Args:
+            query: SQL запрос
+            params: Параметры запроса
+        
+        Returns:
+            List[Dict]: Результаты запроса как список словарей
+        """
+        conn = self.conn_mgr.get_postgres_connection()
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        
+        if cursor.description:
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
+            result = [dict(zip(columns, row)) for row in rows]
+        else:
+            conn.commit()
+            result = []
+        
+        cursor.close()
+        return result
     
     def _ensure_migration_table(self):
         """Создание таблицы статуса миграции если не существует"""
@@ -435,8 +435,14 @@ class TableListManager:
 
 # Примеры использования
 if __name__ == "__main__":
+    # Инициализация ConnectionManager (task_id=2 по умолчанию)
+    conn_manager = ConnectionManager()
+    
+    info = conn_manager.get_connection_info()
+    console.print(f"[green]✅ Профиль: {info['profile_name']} (task_id={info['task_id']})[/green]\n")
+    
     # Создаём менеджер
-    manager = TableListManager()
+    manager = TableListManager(conn_manager)
     
     try:
         # Инициализация списка таблиц

@@ -776,10 +776,14 @@
                       "responsibilities": [
                         "Подключение к MS SQL Server",
                         "Подключение к PostgreSQL",
-                        "Управление пулом соединений",
-                        "Обработка ошибок подключения"
+                        "Управление жизненным циклом подключений",
+                        "Диагностика состояния БД",
+                        "Обработка ошибок подключения",
+                        "Загрузка профилей из connections.json"
                       ],
-                      "status": "planned"
+                      "status": "implemented",
+                      "version": "2.0",
+                      "lastUpdated": "2025-10-07"
                     },
                     "classes": [
                       {
@@ -789,12 +793,42 @@
                             "name": "ConnectionManager",
                             "location": "src/code/infrastructure/classes/connection_manager.py",
                             "responsibilities": [
-                              "Создание и управление подключениями к БД"
+                              "Создание и управление подключениями к MS SQL Server и PostgreSQL",
+                              "Загрузка профилей из connections.json через ConnectionProfileLoader",
+                              "Управление жизненным циклом подключений",
+                              "Поддержка task_id=2 по умолчанию",
+                              "Переключение между задачами миграции",
+                              "Context manager для безопасного управления ресурсами"
                             ],
                             "dependsOn": [
-                              "ConfigLoader"
+                              "ConnectionProfileLoader"
                             ],
-                            "status": "planned"
+                            "status": "implemented",
+                            "version": "2.0",
+                            "implemented": "2025-10-07"
+                          }
+                        }
+                      },
+                      {
+                        "class": {
+                          "id": "ConnectionDiagnostics",
+                          "attributes": {
+                            "name": "ConnectionDiagnostics",
+                            "location": "src/code/infrastructure/classes/connection_diagnostics.py",
+                            "responsibilities": [
+                              "Диагностика состояния подключений к БД",
+                              "Проверка здоровья PostgreSQL и MS SQL Server",
+                              "Тестирование подключений",
+                              "Валидация схем и метаданных",
+                              "Генерация диагностических отчетов",
+                              "Проверка существования и структуры схемы mcl"
+                            ],
+                            "dependsOn": [
+                              "ConnectionManager"
+                            ],
+                            "status": "implemented",
+                            "version": "1.0",
+                            "implemented": "2025-10-07"
                           }
                         }
                       }
@@ -2511,6 +2545,15 @@
           "location": "docs/project-documentation-rules.md",
           "description": "Правила ведения документации"
         },
+        "infrastructure": {
+          "location": "docs/infrastructure/",
+          "description": "Правила работы с инфраструктурой",
+          "files": [
+            "docs/infrastructure/database-connections-rules.md"
+          ],
+          "purpose": "Детальные правила работы с подключениями к БД и инфраструктурой",
+          "created": "2025-10-07"
+        },
         "legacy": {
           "location": "docs-old/operations/reports/",
           "description": "Устаревшие отчеты и документация"
@@ -2523,14 +2566,57 @@
           "standards": "PEP 8, PEP 484"
         },
         "classes": {
-          "location": "src/classes/",
-          "description": "Основные классы системы",
-          "count": "20+ файлов"
+          "location": "src/code/infrastructure/classes/, src/code/migration/classes/, src/code/metadata/classes/",
+          "description": "Классы системы миграции (infrastructure, migration, metadata)",
+          "count": "25+ файлов",
+          "key_classes": [
+            "ConnectionManager",
+            "ConnectionDiagnostics",
+            "ConnectionProfileLoader",
+            "TableMigrator",
+            "MigrationMetrics"
+          ]
         },
         "scripts": {
-          "location": "src/scripts/",
-          "description": "Скрипты миграции",
-          "count": "1 файл"
+          "location": "scripts/",
+          "description": "Исполняемые скрипты миграции и диагностики",
+          "categories": {
+            "migration": ["scripts/migration/"],
+            "diagnostics": ["scripts/check_connections_and_tables.py", "scripts/check_mcl_schema.py"],
+            "management": ["scripts/migration_manager.py", "scripts/reset_migration_status.py"]
+          }
+        },
+        "tests": {
+          "location": "tests/",
+          "description": "Автоматизированные тесты системы",
+          "framework": "pytest",
+          "created": "2025-10-07",
+          "structure": {
+            "unit": {
+              "location": "tests/unit/",
+              "description": "Юнит-тесты (без реальных БД)",
+              "subdirs": ["infrastructure", "migration", "metadata"]
+            },
+            "integration": {
+              "location": "tests/integration/",
+              "description": "Интеграционные тесты (с реальными БД)",
+              "tests": ["test_connection_manager.py"]
+            },
+            "e2e": {
+              "location": "tests/e2e/",
+              "description": "End-to-end тесты (полные сценарии миграции)"
+            },
+            "fixtures": {
+              "location": "tests/fixtures/",
+              "description": "Тестовые данные, моки, фикстуры"
+            }
+          },
+          "config": {
+            "conftest": "tests/conftest.py",
+            "pytest_ini": "tests/pytest.ini",
+            "readme": "tests/README.md"
+          },
+          "requirements": ["pytest>=7.0", "pytest-cov", "pytest-mock"]
         },
         "aiRules": {
           "location": "src/ai-rules/",

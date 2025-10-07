@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
 Модуль мониторинга и отчётности для миграции
+
+ОБНОВЛЕНО: Использует ConnectionManager
 """
 import os
 import sys
@@ -10,7 +12,7 @@ import threading
 import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
-import psycopg2
+from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -18,12 +20,11 @@ from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn
 from rich.live import Live
 from rich.layout import Layout
 from rich.text import Text
-# import smtplib
-# from email.mime.text import MimeText
-# from email.mime.multipart import MimeMultipart
 
-# Добавляем путь к проекту
-sys.path.append('/home/alex/projects/sql/femcl')
+# Добавляем путь к модулям проекта
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src" / "code"))
+
+from infrastructure.classes import ConnectionManager
 
 console = Console()
 
@@ -39,50 +40,50 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class MigrationMonitor:
-    """Класс для мониторинга и отчётности миграции"""
+    """
+    Класс для мониторинга и отчётности миграции.
     
-    def __init__(self, config_path="/home/alex/projects/sql/femcl/config/config.yaml"):
-        """Инициализация монитора"""
-        import yaml
-        with open(config_path, 'r', encoding='utf-8') as file:
-            self.config = yaml.safe_load(file)
+    ОБНОВЛЕНО: Использует ConnectionManager для подключений к БД.
+    """
+    
+    def __init__(self, connection_manager: ConnectionManager):
+        """
+        Инициализация монитора.
         
-        self.connection = None
+        Args:
+            connection_manager: Экземпляр ConnectionManager
+        """
+        self.conn_mgr = connection_manager
+        self.task_id = connection_manager.task_id
         self.monitoring_active = False
         self.monitoring_thread = None
         self._ensure_monitoring_tables()
     
-    def _get_connection(self):
-        """Получение подключения к PostgreSQL"""
-        if self.connection is None or self.connection.closed:
-            postgres_config = self.config['database']['postgres']
-            self.connection = psycopg2.connect(
-                host=postgres_config['host'],
-                port=postgres_config['port'],
-                dbname=postgres_config['database'],
-                user=postgres_config['user'],
-                password=postgres_config['password'],
-                connect_timeout=postgres_config['connection_timeout'],
-                sslmode=postgres_config['ssl_mode']
-            )
-        return self.connection
-    
     def _execute_query(self, query, params=None):
-        """Выполнение SQL запроса"""
-        conn = self._get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(query, params)
-            
-            if cursor.description:
-                columns = [desc[0] for desc in cursor.description]
-                rows = cursor.fetchall()
-                return [dict(zip(columns, row)) for row in rows]
-            else:
-                conn.commit()
-                return []
-        finally:
-            if cursor:
+        """
+        Выполнение SQL запроса.
+        
+        Args:
+            query: SQL запрос
+            params: Параметры запроса
+        
+        Returns:
+            List[Dict]: Результаты запроса как список словарей
+        """
+        conn = self.conn_mgr.get_postgres_connection()
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        
+        if cursor.description:
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
+            result = [dict(zip(columns, row)) for row in rows]
+        else:
+            conn.commit()
+            result = []
+        
+        cursor.close()
+        return result
                 cursor.close()
     
     def _ensure_monitoring_tables(self):
@@ -977,8 +978,14 @@ class MigrationMonitor:
 
 # Примеры использования
 if __name__ == "__main__":
+    # Инициализация ConnectionManager (task_id=2 по умолчанию)
+    manager = ConnectionManager()
+    
+    info = manager.get_connection_info()
+    console.print(f"[green]✅ Профиль: {info['profile_name']} (task_id={info['task_id']})[/green]\n")
+    
     # Создаём монитор
-    monitor = MigrationMonitor()
+    monitor = MigrationMonitor(manager)
     
     try:
         # Запуск мониторинга

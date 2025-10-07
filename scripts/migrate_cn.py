@@ -1,38 +1,37 @@
 #!/usr/bin/env python3
 """
 Миграция таблицы cn из MS SQL Server в PostgreSQL
+
+ОБНОВЛЕНО: Использует ConnectionManager
 """
-import psycopg2
-import pyodbc
+import sys
+from pathlib import Path
+
+# Добавляем путь к модулям проекта
+sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "code"))
+
 import pandas as pd
 from rich.console import Console
+from infrastructure.classes import ConnectionManager
 
 console = Console()
 
-def connect_databases():
-    """Подключение к базам данных"""
-    console.print("[blue]🔌 Подключение к базам данных...[/blue]")
+def connect_databases(manager: ConnectionManager):
+    """
+    Получение подключений к базам данных через ConnectionManager.
     
-    # PostgreSQL
-    pg_conn = psycopg2.connect(
-        host="localhost",
-        port=5432,
-        dbname="fish_eye",
-        user="postgres",
-        password="postgres"
-    )
+    Args:
+        manager: ConnectionManager с загруженным профилем
     
-    # MS SQL Server
-    mssql_conn = pyodbc.connect(
-        "DRIVER={ODBC Driver 17 for SQL Server};"
-        "SERVER=localhost,1433;"
-        "DATABASE=FishEye;"
-        "UID=sa;"
-        "PWD=kolob_OK1;"
-        "TrustServerCertificate=yes;"
-    )
+    Returns:
+        tuple: (pg_conn, mssql_conn)
+    """
+    console.print("[blue]🔌 Получение подключений к базам данных...[/blue]")
     
-    console.print("[green]✅ Подключения установлены[/green]")
+    pg_conn = manager.get_postgres_connection()
+    mssql_conn = manager.get_mssql_connection()
+    
+    console.print("[green]✅ Подключения получены[/green]")
     return pg_conn, mssql_conn
 
 def check_table_readiness(pg_conn, mssql_conn):
@@ -302,8 +301,14 @@ def main():
     console.print("[bold blue]🚀 НАЧАЛО МИГРАЦИИ ТАБЛИЦЫ CN[/bold blue]")
     
     try:
-        # Подключение к базам данных
-        pg_conn, mssql_conn = connect_databases()
+        # Инициализация ConnectionManager (task_id=2 по умолчанию)
+        manager = ConnectionManager()
+        
+        info = manager.get_connection_info()
+        console.print(f"[green]✅ Профиль: {info['profile_name']} (task_id={info['task_id']})[/green]\n")
+        
+        # Получение подключений к базам данных
+        pg_conn, mssql_conn = connect_databases(manager)
         
         # Этап 1: Проверка готовности
         is_ready, columns_info, row_count = check_table_readiness(pg_conn, mssql_conn)
@@ -330,19 +335,19 @@ def main():
         console.print("[bold green]🎉 МИГРАЦИЯ ТАБЛИЦЫ CN ЗАВЕРШЕНА УСПЕШНО![/bold green]")
         return True
         
+    except ValueError as e:
+        console.print(f"[red]❌ Ошибка инициализации: {e}[/red]")
+        console.print("[yellow]💡 Проверьте connections.json[/yellow]")
+        return False
     except Exception as e:
         console.print(f"[red]❌ Критическая ошибка: {e}[/red]")
         return False
-    
     finally:
-        # Закрываем соединения
-        try:
-            pg_conn.close()
-            mssql_conn.close()
+        # Закрываем соединения через ConnectionManager
+        if 'manager' in locals():
+            manager.close_all_connections()
             console.print("[blue]🔌 Соединения закрыты[/blue]")
-        except:
-            pass
 
 if __name__ == "__main__":
     success = main()
-    exit(0 if success else 1)
+    sys.exit(0 if success else 1)

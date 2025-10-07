@@ -64,25 +64,3 @@ class FunctionMappingModel:
             'is_semi_automatic': self.is_semi_automatic,
             'is_manual': self.is_manual
         }
-
-        # TODO: Реализовать применение маппинга
-        return source_code
-    
-    def to_dict(self) -> dict:
-        """Преобразование в словарь для JSON"""
-        return {
-            'id': self.id,
-            'source_function': self.source_function,
-            'target_function': self.target_function,
-            'mapping_pattern': self.mapping_pattern,
-            'replacement_pattern': self.replacement_pattern,
-            'mapping_type': self.mapping_type,
-            'complexity_level': self.complexity_level,
-            'applicable_objects': self.applicable_objects,
-            'description': self.description,
-            'examples': self.examples,
-            'is_active': self.is_active,
-            'is_automatic': self.is_automatic,
-            'is_semi_automatic': self.is_semi_automatic,
-            'is_manual': self.is_manual
-        }

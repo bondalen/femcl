@@ -17,6 +17,11 @@
 - Используй готовые правила AI из src/ai-rules/
 - НЕ изменяй правила AI, только применяй их
 
+## Подключения к базам данных
+- **ОБЯЗАТЕЛЬНО:** Используй `ConnectionManager` из `src/code/infrastructure/classes/`
+- **Источник:** `connections.json` (task_id=2 по умолчанию)
+- **Правила:** `docs/infrastructure/database-connections-rules.md`
+
 ## Правила кодирования
 - Python 3.11+ с type hints
 - PEP 8 стандарты

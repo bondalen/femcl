@@ -63,3 +63,20 @@ Thumbs.db
 
 # FEMCL connections - НЕ коммитить файл с реальными паролями!
 src/code/infrastructure/config/connections.json
+
+# Pytest и тестирование
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+*.cover
+.cache
+
+# Тестовые данные и временные файлы тестов
+tests/fixtures/test_*.db
+tests/fixtures/test_connections.json
+tests/fixtures/*.tmp
+tests/**/*.pyc
+tests/**/__pycache__/
