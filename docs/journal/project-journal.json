@@ -99,6 +99,13 @@
                       "docs/project/project-docs.json#database.metadata.note",
                       "docs/project/project-docs.json#migration.metadata.note"
                     ]
+                  },
+                  {
+                    "action": "Синхронизация с GitHub",
+                    "details": "Обновлены даты lastUpdated на 2025-10-07 во всех файлах документации. Все изменения (9 файлов, +1371/-192 строк) успешно закоммичены и отправлены в GitHub. Коммит: 9dbda57",
+                    "references": [
+                      "https://github.com/bondalen/femcl/commit/9dbda57"
+                    ]
                   }
                 ]
               }
