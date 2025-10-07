@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "created": "2025-10-06",
+    "description": "Шаблон профилей подключений для миграции БД. Скопируйте этот файл в connections.json и заполните реальными данными."
+  },
+  "profiles": [
+    {
+      "profile_id": "example_profile_1",
+      "name": "Example Migration Profile 1",
+      "task_id": 1,
+      "description": "Пример профиля миграции для задачи №1",
+      "source": {
+        "type": "mssql",
+        "host": "your_mssql_host",
+        "port": 1433,
+        "database": "source_database_name",
+        "user": "your_mssql_user",
+        "password": "your_mssql_password",
+        "driver": "ODBC Driver 17 for SQL Server",
+        "options": {
+          "TrustServerCertificate": "yes"
+        }
+      },
+      "target": {
+        "type": "postgresql",
+        "host": "your_postgres_host",
+        "port": 5432,
+        "database": "target_database_name",
+        "user": "your_postgres_user",
+        "password": "your_postgres_password",
+        "ssl": "prefer"
+      },
+      "active": true,
+      "created": "2025-10-06",
+      "last_used": null
+    },
+    {
+      "profile_id": "example_profile_2",
+      "name": "Example Migration Profile 2",
+      "task_id": 2,
+      "description": "Пример профиля миграции для задачи №2",
+      "source": {
+        "type": "mssql",
+        "host": "another_mssql_host",
+        "port": 1433,
+        "database": "another_source_db",
+        "user": "another_user",
+        "password": "another_password",
+        "driver": "ODBC Driver 17 for SQL Server",
+        "options": {
+          "TrustServerCertificate": "yes"
+        }
+      },
+      "target": {
+        "type": "postgresql",
+        "host": "another_postgres_host",
+        "port": 5432,
+        "database": "another_target_db",
+        "user": "another_user",
+        "password": "another_password",
+        "ssl": "prefer"
+      },
+      "active": false,
+      "created": "2025-10-06",
+      "last_used": null
+    }
+  ],
+  "default_profile": "example_profile_1",
+  "notes": [
+    "1. Скопируйте этот файл в connections.json",
+    "2. Заполните реальными данными подключений",
+    "3. НЕ коммитьте connections.json в Git (он в .gitignore)",
+    "4. Можете иметь несколько профилей для разных задач миграции",
+    "5. task_id соответствует ID задачи в mcl.migration_tasks"
+  ]
+}

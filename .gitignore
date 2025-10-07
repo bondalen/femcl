@@ -60,3 +60,6 @@ Thumbs.db
 !database/backups/*.dump
 !database/backups/*.sql
 !database/backups/*.txt
+
+# FEMCL connections - НЕ коммитить файл с реальными паролями!
+src/code/infrastructure/config/connections.json
