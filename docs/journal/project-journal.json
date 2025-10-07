@@ -416,6 +416,246 @@
             }
           ]
         }
+      },
+      {
+        "chat": {
+          "displayName": "Функции в колонках (completed, high). № chat-2025-10-07-002",
+          "chat-attributes": {
+            "id": "chat-2025-10-07-002",
+            "name": "Функции в колонках",
+            "created": "2025-10-07",
+            "lastUpdated": "2025-10-07",
+            "owner": "Александр",
+            "tags": ["metadata", "functions", "conversion", "architecture", "documentation", "principles"],
+            "links": {
+              "projectDocsRefs": [
+                "project.architecture.principles.metadataFirst",
+                "project.architecture.stages.rootStages[1].substages[0]",
+                "project.database.controlSchema.functionConversion"
+              ],
+              "developmentTasks": [],
+              "aiRuleRefs": ["src/ai-rules/metadata/function-conversion-rules.md"]
+            }
+          },
+          "entries": [
+            {
+              "log": {
+                "displayName": "Документирование принципа metadataFirst и архитектуры конвертации функций (completed). № log-2025-10-07-006",
+                "log-attributes": {
+                  "id": "log-2025-10-07-006",
+                  "timestamp": "2025-10-07T00:00:00Z",
+                  "level": "info",
+                  "effort": "3h",
+                  "status": "completed",
+                  "links": {
+                    "projectDocsRefs": [
+                      "project.architecture.principles.metadataFirst",
+                      "project.database.controlSchema.functionConversion"
+                    ],
+                    "developmentTasks": [],
+                    "aiRuleRefs": ["src/ai-rules/metadata/function-conversion-rules.md"]
+                  }
+                },
+                "entries": [
+                  {
+                    "action": "Анализ текущего состояния БД и метаданных",
+                    "details": "Проверено подключение к БД для task_id=2. Обнаружено: 166 postgres_tables, 1001 postgres_columns, 67 вычисляемых колонок. Из них 42 преобразованы (automatic-mapped), 25 требуют ручной работы (кастомные функции [ags] и сложные конструкции). Таблица function_mapping_rules существует с 18 правилами маппинга",
+                    "references": [
+                      "docs/journal/notes/function-analysis-2025-10-07.md",
+                      "docs/journal/notes/verification-summary-2025-10-07.md"
+                    ]
+                  },
+                  {
+                    "action": "Выявление проблемы дублирования полей",
+                    "details": "Обнаружено дублирование 5 общих полей (mapping_status, mapping_complexity, mapping_notes, function_mapping_rule_id, postgres_definition) в 4 таблицах объектов. Предложена нормализация через родительскую таблицу с наследованием",
+                    "references": [
+                      "docs/journal/notes/function-mapping-proposals-2025-10-07.md",
+                      "docs/journal/notes/function-mapping-proposals-v2-2025-10-07.md",
+                      "docs/journal/notes/function-mapping-normalized-architecture-2025-10-07.md"
+                    ]
+                  },
+                  {
+                    "action": "Решение проблемы полиморфных FK",
+                    "details": "Проанализированы 3 варианта решения проблемы FK (object_id не может быть FK к 4 таблицам). Выбран Вариант B (наследование): родительская таблица function_conversions + 4 дочерние с реальными FK. source_definition и target_definition размещены в родительской таблице для стандартной обработки",
+                    "references": [
+                      "docs/journal/notes/function-conversion-fk-solutions-2025-10-07.md",
+                      "docs/journal/notes/function-conversion-final-architecture-2025-10-07.md"
+                    ]
+                  },
+                  {
+                    "action": "Документирование принципа metadataFirst",
+                    "details": "Добавлен раздел architecture.principles.metadataFirst в project-docs.json. Описаны обоснование, реализация, два режима (automatic + manual), workflow для каждого режима, критерии валидации перед стадией 02.02",
+                    "references": [
+                      "docs/project/project-docs.json#project.architecture.principles.metadataFirst"
+                    ]
+                  },
+                  {
+                    "action": "Дополнение стадии 02.01 подстадиями конвертации",
+                    "details": "Добавлены 4 подстадии в стадию 02.01: (1) Автоматическое преобразование функций, (2) Идентификация функций для ручной разработки, (3) Ручная разработка функций в чате, (4) Валидация преобразованных функций. Описаны критерии, действия, классы для каждой подстадии",
+                    "references": [
+                      "docs/project/project-docs.json#project.architecture.stages.rootStages[1].substages[0]"
+                    ]
+                  },
+                  {
+                    "action": "Описание архитектуры function_conversions в БД",
+                    "details": "Добавлен раздел database.controlSchema.functionConversion с полным описанием системы наследования: родительская таблица function_conversions (11 полей) + 4 дочерние таблицы (только FK связи). Описаны поля, статусы, связи, преимущества нормализации",
+                    "references": [
+                      "docs/project/project-docs.json#project.database.controlSchema.functionConversion"
+                    ]
+                  },
+                  {
+                    "action": "Создание AI-правил для конвертации функций",
+                    "details": "Создан файл src/ai-rules/metadata/function-conversion-rules.md (300+ строк) с детальными правилами для AI-ассистента: принцип 'не определять на лету', процесс автоматической и ручной конвертации, 6 правил для AI, чеклист разработки, примеры, диагностика",
+                    "references": [
+                      "src/ai-rules/metadata/function-conversion-rules.md"
+                    ]
+                  },
+                  {
+                    "action": "Обновление .cursorrules",
+                    "details": "Добавлен раздел 'Принцип не определять на лету' с описанием стадий 02.01 и 02.02, ссылкой на function-conversion-rules.md. Добавлен раздел 'При работе с функциями в колонках/ограничениях' с правилами работы. Обновлена версия до 1.1.0",
+                    "references": [
+                      ".cursorrules"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "log": {
+                "displayName": "Реализация системы конвертации функций в БД и переименование таблиц (completed). № log-2025-10-07-007",
+                "log-attributes": {
+                  "id": "log-2025-10-07-007",
+                  "timestamp": "2025-10-07T00:00:00Z",
+                  "level": "info",
+                  "effort": "2h",
+                  "status": "completed",
+                  "links": {
+                    "projectDocsRefs": [
+                      "project.database.controlSchema.functionConversion"
+                    ],
+                    "developmentTasks": [],
+                    "aiRuleRefs": []
+                  }
+                },
+                "entries": [
+                  {
+                    "action": "Создание SQL скриптов для системы конвертации",
+                    "details": "Создано 9 SQL скриптов (943 строки): родительская таблица postgres_function_conversions (11 полей), 4 дочерние таблицы через INHERITS (только FK связи), миграция 147 конвертаций, 2 представления, скрипты переименования",
+                    "references": [
+                      "database/sql/function_conversions/01_create_parent_table.sql",
+                      "database/sql/function_conversions/02_create_child_tables.sql",
+                      "database/sql/function_conversions/03_migrate_existing_data.sql",
+                      "database/sql/function_conversions/04_create_views.sql",
+                      "database/sql/function_conversions/05_rename_tables_clean.sql",
+                      "database/sql/function_conversions/06_recreate_views.sql",
+                      "database/sql/function_conversions/07_rename_fk_constraints.sql"
+                    ]
+                  },
+                  {
+                    "action": "Создание Python скриптов выполнения",
+                    "details": "Создано 3 Python скрипта (336 строк): execute_all.py для установки системы, execute_rename.py и finish_rename.py для переименования таблиц. Все используют ConnectionManager",
+                    "references": [
+                      "database/sql/function_conversions/execute_all.py",
+                      "database/sql/function_conversions/execute_rename.py",
+                      "database/sql/function_conversions/finish_rename.py"
+                    ]
+                  },
+                  {
+                    "action": "Выполнение установки системы в БД",
+                    "details": "Созданы 5 таблиц (postgres_function_conversions + 4 наследника), мигрированы 147 конвертаций (67 колонок + 49 DEFAULT + 31 CHECK), созданы 2 представления. Целостность подтверждена: родительская 147 = сумма дочерних 147",
+                    "references": [
+                      "mcl.postgres_function_conversions",
+                      "mcl.postgres_column_function_conversions",
+                      "mcl.postgres_default_constraint_function_conversions",
+                      "mcl.postgres_check_constraint_function_conversions",
+                      "mcl.postgres_index_function_conversions"
+                    ]
+                  },
+                  {
+                    "action": "Переименование таблиц с префиксом postgres_",
+                    "details": "Переименованы 5 таблиц конвертаций с добавлением префикса postgres_ для группировки с объектами в алфавитном порядке. Автоматически переименованы 15+ индексов и 10+ constraints. Пересозданы 2 представления с новыми именами таблиц",
+                    "references": [
+                      "docs/journal/notes/table-naming-proposal-2025-10-07.md",
+                      "database/sql/function_conversions/05_rename_tables_clean.sql"
+                    ]
+                  },
+                  {
+                    "action": "Проверка группировки таблиц",
+                    "details": "Подтверждена корректная группировка: postgres_check_constraint_function_conversions рядом с postgres_check_constraints, postgres_column_function_conversions рядом с postgres_columns, аналогично для DEFAULT и INDEX. Улучшена навигация в БД",
+                    "references": [
+                      "docs/journal/notes/phase2-final-summary-2025-10-07.md"
+                    ]
+                  },
+                  {
+                    "action": "Обновление документации project-docs.json",
+                    "details": "Обновлены имена таблиц в разделе database.controlSchema.functionConversion: все 5 таблиц теперь с префиксом postgres_. Добавлен раздел naming с обоснованием выбора префикса",
+                    "references": [
+                      "docs/project/project-docs.json#project.database.controlSchema.functionConversion"
+                    ]
+                  },
+                  {
+                    "action": "Проверка использования устаревших FK",
+                    "details": "Проверено 200+ файлов кода и SQL на использование устаревших полей (computed_function_mapping_rule_id, mapping_status, mapping_complexity, mapping_notes). Найдено: атрибуты в Python классах (только в памяти), НЕ найдено: использование в SQL запросах. Вывод: безопасно удалять",
+                    "references": [
+                      "docs/journal/notes/legacy-fields-check-report-2025-10-07.md",
+                      "src/code/migration/classes/computed_column_model.py",
+                      "src/code/migration/classes/view_model.py"
+                    ]
+                  },
+                  {
+                    "action": "Удаление устаревших полей маппинга",
+                    "details": "Удалено 16 устаревших полей (4 поля × 4 таблицы): computed_function_mapping_rule_id, computed_mapping_status, computed_mapping_complexity, computed_mapping_notes из postgres_columns, postgres_default_constraints, postgres_check_constraints, postgres_indexes. Оставлено 4 поля postgres_definition для быстрого доступа к результатам. Удалено 2 зависимых представления (v_default_constraints_by_table, v_postgres_default_constraints_by_table). Разделение ответственности: объекты хранят исходник+результат, conversions хранят процесс+метаданные+историю",
+                    "references": [
+                      "database/sql/function_conversions/08_cleanup_legacy_fields.sql",
+                      "docs/journal/notes/legacy-fk-cleanup-proposal-2025-10-07.md"
+                    ]
+                  },
+                  {
+                    "action": "Очистка временных артефактов чата",
+                    "details": "Удалено 15 временных файлов (7 промежуточных документов, 5 одноразовых SQL скриптов, 3 Python скрипта). Оставлено 17 основных файлов: 11 документов (анализы, итоги, референсы) + 6 SQL скриптов (DDL/DML). Создан cleanup-proposal-2025-10-07.md с обоснованием удаления",
+                    "references": [
+                      "docs/journal/notes/cleanup-proposal-2025-10-07.md"
+                    ]
+                  },
+                  {
+                    "action": "Создание финального отчета чата",
+                    "details": "Создан chat-final-report-2025-10-07.md с полной сводкой работы: выполненные фазы 1-2, статистика (5 таблиц, 147 конвертаций, 16 удаленных полей), финальная архитектура БД, планы Phase 3-4, референсы для следующего чата. Документ служит точкой входа для понимания всей работы",
+                    "references": [
+                      "docs/journal/notes/chat-final-report-2025-10-07.md"
+                    ]
+                  }
+                ],
+                "summary": "Phase 2 завершена полностью. Создана нормализованная архитектура БД с наследованием (5 таблиц), мигрированы 147 конвертаций, удалены 16 дублирующих полей, очищены временные артефакты (15 файлов). Система готова к Phase 3 (разработка Python классов)",
+                "results": {
+                  "database": {
+                    "tablesCreated": 5,
+                    "viewsCreated": 2,
+                    "recordsMigrated": 147,
+                    "fieldsDeleted": 16,
+                    "viewsDeleted": 2
+                  },
+                  "documentation": {
+                    "documentsCreated": 17,
+                    "documentsKept": 11,
+                    "documentsDeleted": 7,
+                    "sqlScriptsCreated": 14,
+                    "sqlScriptsKept": 6,
+                    "sqlScriptsDeleted": 8
+                  },
+                  "codeVerification": {
+                    "filesChecked": "200+",
+                    "sqlQueriesUseLegacyFields": false,
+                    "pythonClassesUseLegacyFields": false
+                  }
+                },
+                "nextSteps": [
+                  "Phase 3: Разработка Python классов (FunctionConverter, MetadataTransformer)",
+                  "Phase 4: Ручная разработка 25 функций [ags]"
+                ]
+              }
+            }
+          ]
+        }
       }
     ],
     "links": {

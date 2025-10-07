@@ -13,6 +13,66 @@
     },
     "architecture": {
       "approach": "Двухэтапный подход к миграции БД",
+      "principles": {
+        "metadataFirst": {
+          "name": "Принцип предварительного формирования метаданных",
+          "description": "Все имена и свойства объектов целевой БД определяются на стадии формирования метаданных (02.01), а НЕ на лету при создании объектов (02.02)",
+          "version": "1.0.0",
+          "created": "2025-10-07",
+          "rationale": [
+            "Предсказуемость: все имена и выражения известны заранее",
+            "Валидация: возможность проверки до создания объектов в БД",
+            "Отладка: проще найти и исправить ошибки в метаданных",
+            "Повторяемость: гарантия идентичных результатов миграции",
+            "Прозрачность: весь код для review доступен в метаданных до применения"
+          ],
+          "implementation": {
+            "stage": "02.01 - Формирование метаданных",
+            "location": "src/code/metadata/",
+            "classes": ["Analyzer", "Transformer", "Writer", "FunctionConverter"],
+            "database": "mcl.function_conversions + 4 дочерние таблицы (наследование)",
+            "modes": {
+              "automatic": "Применение правил из function_mapping_rules через FunctionConverter",
+              "manual": "Ручная разработка сложных функций в чате (как обычный код)"
+            }
+          },
+          "affects": [
+            "Вычисляемые колонки → postgres_columns через column_function_conversions",
+            "Ограничения DEFAULT → postgres_default_constraints через default_constraint_function_conversions",
+            "Ограничения CHECK → postgres_check_constraints через check_constraint_function_conversions",
+            "Функциональные индексы → postgres_indexes через index_function_conversions",
+            "Имена таблиц и колонок → snake_case конвертация на стадии 02.01",
+            "Кастомные функции [ags] → ручная разработка или inline SQL на стадии 02.01"
+          ],
+          "workflow": {
+            "automatic": [
+              "FunctionConverter загружает правила из function_mapping_rules",
+              "Применяет правила к source_definition",
+              "Записывает результат в target_definition (родительская таблица)",
+              "Устанавливает статус: automatic-mapped",
+              "Связывает с mapping_rule_id"
+            ],
+            "manual": [
+              "FunctionConverter определяет необходимость ручной работы",
+              "Устанавливает статус: manual-required",
+              "AI-ассистент начинает разработку → manual-in-progress (с developer и timestamp)",
+              "AI пишет PostgreSQL код в target_definition как обычный код",
+              "AI тестирует синтаксис и логику",
+              "AI завершает разработку → manual-completed (с timestamp)",
+              "Метаданные готовы для использования на стадии 02.02"
+            ]
+          },
+          "validation": {
+            "beforeStage02_02": "ВСЕ функции должны иметь статус: automatic-mapped OR manual-completed",
+            "criteria": [
+              "target_definition IS NOT NULL для всех конвертаций",
+              "Нет записей в статусе manual-in-progress",
+              "Синтаксис PostgreSQL валиден",
+              "Все связи корректны"
+            ]
+          }
+        }
+      },
       "stages": {
         "metadata": {
           "version": "1.0.0",
@@ -156,10 +216,95 @@
                 "displayName": "Этап 1.1: Формирование метаданных. № 02.01",
                 "attributes": {
                   "id": "02.01",
-                  "description": "Создание метаданных целевой схемы PostgreSQL",
-                  "validationCriteria": "Метаданные созданы для всех таблиц"
+                  "description": "Создание метаданных целевой схемы PostgreSQL с преобразованием всех функций (автоматически + вручную)",
+                  "principle": "metadataFirst",
+                  "validationCriteria": "Метаданные созданы для всех таблиц, ВСЕ функции преобразованы (automatic-mapped OR manual-completed)",
+                  "modes": [
+                    "automatic - применение function_mapping_rules через FunctionConverter",
+                    "manual - ручная разработка сложных/кастомных функций в чате"
+                  ]
                 },
-                "substages": []
+                "substages": [
+                  {
+                    "displayName": "Автоматическое преобразование функций. № 02.01.01",
+                    "attributes": {
+                      "id": "02.01.01",
+                      "description": "Применение правил маппинга к простым функциям",
+                      "action": "FunctionConverter.convert_automatic() применяет правила из function_mapping_rules",
+                      "class": "FunctionConverter",
+                      "input": "function_conversions WHERE mapping_status = 'pending'",
+                      "output": "target_definition заполнено, статус: automatic-mapped",
+                      "validationCriteria": "Все простые функции преобразованы автоматически",
+                      "tools": ["FunctionConverter", "function_mapping_rules"]
+                    },
+                    "substages": []
+                  },
+                  {
+                    "displayName": "Идентификация функций для ручной разработки. № 02.01.02",
+                    "attributes": {
+                      "id": "02.01.02",
+                      "description": "Определение функций требующих ручной разработки",
+                      "action": "FunctionConverter.identify_manual_functions() анализирует ошибки автоматической конвертации",
+                      "class": "FunctionConverter",
+                      "criteria": [
+                        "Кастомные функции [ags].*",
+                        "Сложные CASE WHEN конструкции (>200 символов)",
+                        "Отсутствие правил маппинга в function_mapping_rules",
+                        "Ошибки автоматического преобразования (automatic-error)",
+                        "Специфичные конструкции MS SQL без эквивалентов"
+                      ],
+                      "output": "Статус: manual-required, список функций для ручной работы",
+                      "validationCriteria": "Все функции категоризированы: automatic-mapped OR manual-required"
+                    },
+                    "substages": []
+                  },
+                  {
+                    "displayName": "Ручная разработка функций. № 02.01.03",
+                    "attributes": {
+                      "id": "02.01.03",
+                      "description": "Ручная разработка сложных/кастомных функций в чате (работа как с обычным кодом)",
+                      "mode": "development",
+                      "workflow": [
+                        "AI получает список: SELECT * FROM function_conversions WHERE mapping_status = 'manual-required'",
+                        "AI выбирает функцию и начинает работу: FunctionConverter.start_manual(id, developer='AI-Assistant')",
+                        "Статус: manual-required → manual-in-progress (+ manual_developer + manual_started_at)",
+                        "AI анализирует исходную функцию (source_definition)",
+                        "AI разрабатывает PostgreSQL код (создание функции ИЛИ inline SQL)",
+                        "AI пишет результат в target_definition",
+                        "AI тестирует синтаксис: SELECT {target_definition} FROM ... LIMIT 1",
+                        "AI завершает: FunctionConverter.complete_manual(id, target_def)",
+                        "Статус: manual-in-progress → manual-completed (+ manual_completed_at)"
+                      ],
+                      "action": "AI-ассистент разрабатывает функции в чате, обновляет function_conversions.target_definition",
+                      "class": "FunctionConverter (методы: start_manual, complete_manual)",
+                      "output": "target_definition заполнено PostgreSQL кодом, статус: manual-completed",
+                      "validationCriteria": "Все функции manual-required преобразованы в manual-completed",
+                      "notes": "Процесс аналогичен разработке обычного кода: анализ → разработка → тестирование → коммит",
+                      "storage": "Результат сохраняется в mcl.function_conversions.target_definition"
+                    },
+                    "substages": []
+                  },
+                  {
+                    "displayName": "Валидация преобразованных функций. № 02.01.04",
+                    "attributes": {
+                      "id": "02.01.04",
+                      "description": "Проверка всех преобразованных функций перед стадией 02.02",
+                      "action": "MetadataTransformer.validate_all_functions() проверяет готовность",
+                      "class": "MetadataTransformer",
+                      "validationCriteria": [
+                        "ВСЕ функции: mapping_status IN ('automatic-mapped', 'manual-completed', 'skipped')",
+                        "target_definition IS NOT NULL для всех (кроме skipped)",
+                        "Нет записей в статусе manual-in-progress",
+                        "Синтаксис PostgreSQL валиден для всех target_definition",
+                        "Все связи function_conversion_id корректны"
+                      ],
+                      "output": "ValidationReport с детальной статистикой готовности",
+                      "errorHandling": "При наличии незавершенных функций - остановка перед стадией 02.02 с отчетом",
+                      "nextStage": "02.02 - только если валидация пройдена"
+                    },
+                    "substages": []
+                  }
+                ]
               },
               {
                 "displayName": "Этап 1.2: Создание объектов и перенос данных. № 02.02",
@@ -1345,6 +1490,137 @@
             "migration_metrics": "Метрики миграции",
             "migration_notifications": "Уведомления миграции",
             "function_mapping_rules": "Правила маппинга функций"
+          },
+          "functionConversion": {
+            "metadata": {
+              "version": "1.0.0",
+              "created": "2025-10-07",
+              "description": "Система конвертации функций MS SQL → PostgreSQL через наследование таблиц",
+              "principle": "metadataFirst",
+              "status": "design"
+            },
+            "architecture": {
+              "type": "inheritance",
+              "description": "Родительская таблица + 4 дочерние через INHERITS с префиксом postgres_ для группировки с объектами",
+              "parentTable": "postgres_function_conversions",
+              "childTables": [
+                "postgres_column_function_conversions",
+                "postgres_default_constraint_function_conversions",
+                "postgres_check_constraint_function_conversions",
+                "postgres_index_function_conversions"
+              ]
+            },
+            "tables": {
+              "postgres_function_conversions": {
+                "type": "parent",
+                "description": "Родительская таблица конвертации функций. Содержит ВСЕ общие поля для обработки (source_definition, target_definition, статусы, ручная разработка)",
+                "location": "mcl.postgres_function_conversions",
+                "fields": {
+                  "id": "SERIAL PK - идентификатор конвертации",
+                  "source_definition": "TEXT NOT NULL - исходная функция (MS SQL)",
+                  "target_definition": "TEXT - преобразованная функция (PostgreSQL)",
+                  "mapping_rule_id": "INTEGER FK → function_mapping_rules.id",
+                  "mapping_status": "VARCHAR(30) - статус конвертации",
+                  "mapping_complexity": "VARCHAR(20) - уровень сложности",
+                  "mapping_notes": "TEXT - заметки о преобразовании",
+                  "manual_developer": "VARCHAR(100) - кто разрабатывает вручную",
+                  "manual_started_at": "TIMESTAMP - начало ручной разработки",
+                  "manual_completed_at": "TIMESTAMP - завершение ручной разработки",
+                  "created_at": "TIMESTAMP - дата создания",
+                  "updated_at": "TIMESTAMP - дата обновления"
+                },
+                "statuses": [
+                  "pending - ожидает обработки",
+                  "automatic-mapped - автоматически преобразовано",
+                  "manual-required - требует ручной разработки",
+                  "manual-in-progress - ручная разработка в процессе",
+                  "manual-completed - ручная разработка завершена",
+                  "automatic-error - ошибка автоматического преобразования",
+                  "validation-failed - не прошла валидацию",
+                  "skipped - пропущено (константа, простое выражение)"
+                ],
+                "purpose": "Центральное хранилище всех конвертаций функций с поддержкой автоматического и ручного режимов"
+              },
+              "postgres_column_function_conversions": {
+                "type": "child",
+                "inherits": "postgres_function_conversions",
+                "description": "Конвертация функций в вычисляемых колонках. Минимальная структура - только FK связь",
+                "location": "mcl.postgres_column_function_conversions",
+                "specificFields": {
+                  "column_id": "INTEGER NOT NULL UNIQUE FK → postgres_columns.id ON DELETE CASCADE"
+                },
+                "inheritedFields": "11 полей от function_conversions (source_definition, target_definition, mapping_*, manual_*)",
+                "purpose": "Связь конвертаций с вычисляемыми колонками через типобезопасный FK"
+              },
+              "postgres_default_constraint_function_conversions": {
+                "type": "child",
+                "inherits": "postgres_function_conversions",
+                "description": "Конвертация функций в DEFAULT ограничениях. Минимальная структура - только FK связь",
+                "location": "mcl.postgres_default_constraint_function_conversions",
+                "specificFields": {
+                  "constraint_id": "INTEGER NOT NULL UNIQUE FK → postgres_default_constraints.id ON DELETE CASCADE"
+                },
+                "inheritedFields": "11 полей от function_conversions",
+                "purpose": "Связь конвертаций с DEFAULT ограничениями через типобезопасный FK"
+              },
+              "postgres_check_constraint_function_conversions": {
+                "type": "child",
+                "inherits": "postgres_function_conversions",
+                "description": "Конвертация функций в CHECK ограничениях. Минимальная структура - только FK связь",
+                "location": "mcl.postgres_check_constraint_function_conversions",
+                "specificFields": {
+                  "constraint_id": "INTEGER NOT NULL UNIQUE FK → postgres_check_constraints.id ON DELETE CASCADE"
+                },
+                "inheritedFields": "11 полей от function_conversions",
+                "purpose": "Связь конвертаций с CHECK ограничениями через типобезопасный FK"
+              },
+              "postgres_index_function_conversions": {
+                "type": "child",
+                "inherits": "postgres_function_conversions",
+                "description": "Конвертация функций в индексах. Содержит специфичные поля для функциональных и filtered индексов",
+                "location": "mcl.postgres_index_function_conversions",
+                "specificFields": {
+                  "index_id": "INTEGER NOT NULL UNIQUE FK → postgres_indexes.id ON DELETE CASCADE",
+                  "is_functional": "BOOLEAN - функциональный индекс?",
+                  "filter_expression": "TEXT - WHERE clause для filtered индексов"
+                },
+                "inheritedFields": "11 полей от function_conversions",
+                "purpose": "Связь конвертаций с индексами + специфичные поля для функциональных индексов"
+              }
+            },
+            "relationships": {
+              "function_mapping_rules": "1 → N postgres_function_conversions (правила применяются к конвертациям)",
+              "postgres_function_conversions": "1 родитель → 4 наследника через INHERITS",
+              "inheritance": [
+                "postgres_column_function_conversions INHERITS postgres_function_conversions",
+                "postgres_default_constraint_function_conversions INHERITS postgres_function_conversions",
+                "postgres_check_constraint_function_conversions INHERITS postgres_function_conversions",
+                "postgres_index_function_conversions INHERITS postgres_function_conversions"
+              ],
+              "links": {
+                "postgres_column_function_conversions.column_id": "postgres_columns.id (CASCADE)",
+                "postgres_default_constraint_function_conversions.constraint_id": "postgres_default_constraints.id (CASCADE)",
+                "postgres_check_constraint_function_conversions.constraint_id": "postgres_check_constraints.id (CASCADE)",
+                "postgres_index_function_conversions.index_id": "postgres_indexes.id (CASCADE)"
+              },
+              "naming": {
+                "pattern": "postgres_ префикс для всех таблиц конвертаций",
+                "reason": "Группировка с объектами в алфавитной сортировке",
+                "benefit": "Таблицы конвертаций сортируются РЯДОМ со своими объектами"
+              }
+            },
+            "usage": {
+              "automatic": "FunctionConverter применяет правила из function_mapping_rules к source_definition, результат в target_definition",
+              "manual": "AI-ассистент работает с target_definition как с обычным кодом, отслеживание через manual_* поля",
+              "query": "Запросы к родительской postgres_function_conversions видят ВСЕ записи из всех дочерних таблиц"
+            },
+            "benefits": [
+              "Нет дублирования: 11 общих полей в одном месте вместо 4",
+              "Типобезопасные FK: каскадное удаление работает корректно",
+              "Стандартизация: единый процесс для всех типов объектов",
+              "source/target в родителе: стандартная обработка без JOIN'ов",
+              "Расширяемость: специфичные поля добавляются только в нужные дочерние таблицы"
+            ]
           },
           "analysis": {
             "table_dependencies": "Зависимости таблиц",
